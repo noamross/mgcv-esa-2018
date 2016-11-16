@@ -1,18 +1,18 @@
 ### Title of the session
 
-The mgcv package as a one-stop-shop for fitting non-linear ecological models
+Fitting non-linear models in R with the mgcv package
 
 ### Description of the session (appears online only; 250 words max.)
 
-To address the increase in both quantity and complexity of available data, ecologists require flexible, robust statistical models, as well as software to perform such analyses. This workshop will focus on how a single tool, the mgcv package for the R language, can be used to fit models to data from a wide range of sources.
+To address the increase in both quantity and complexity of available data, ecologists require flexible models. This workshop will focus on on fitting generalized additive models (GAMs) - robust models for non-linear relationships - using the mgcv package for the R language.
 
 mgcv is one of the most popular packages for modelling non-linear relationships. However, many users do not know how versatile and powerful a tool it can be. This workshop will focus on teaching participants how to use mgcv in a wide variety of situations (including spatio-temporal, zero-inflated, heavy-tailed, time series, and survival data) and advanced use of mgcv (fitting smooth interactions, seasonal effects, spatial effects, Markov random fields and varying-coefficient models).
 
-The workshop will give paricipants an understanding of: (a) practical elements of smoothing theory, with a focus on why they would choose to use different types of smoothers (b) model checking and selection (c) the range of modelling possibilities using mgcv. Participants will be assumed to be familiar with the basics of R (loading/manipulating data, functions, and plotting) and regression in R (lm() and glm()). The organizers have extensive practical experience with ecological statistics and modelling using mgcv.
+The workshop will give paricipants an understanding of: (a) practical elements of smoothing theory in GAMs, with a focus on why they would choose to use different types of smoothers (b) model checking and selection (c) the range of modelling possibilities using mgcv.  It will include both lecture and hands-on exercises. Participants should be familiar with the basics of R (loading/manipulating data, functions, and plotting) and regression in R (lm() and glm()). The organizers have extensive practical and teaching experience with ecological statistics and modelling using mgcv.
 
 ### Summary sentence (appears in print only; 50 word max.)
 
-mgcv is one of the most popular R packages for non-linear modelling, but many users do not know how versatile and powerful it is. This workshop will focus on using mgcv in a wide variety of situations common in ecology, and advanced use of mgcv for model fitting.
+Non-linear relationships are ubiquitous in ecology.  This workshop will focus on a using mgcv, a versatile and powerful R package, to fit models to a variety of ecological data. It will cover practical elements of theory, hands-on model fitting, and a review of the range of model options and possibilities.
 
 ### Name and contact information (affiliation, email) for the lead organizer and any co-organizers
 
