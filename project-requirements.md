@@ -45,10 +45,10 @@ S4S 0A2
 Saturday (August 6th), all day. 
 
 ### Any additional A/V equipment (standard A/V setup is a screen, LCD projector, and laptop)
-We will need the standard setup, as well as wifi access for all participants.
+We will need the standard setup, as well as wifi access and enough power outlets for all participants.
 
 ### Room set-up desired: theater, conference, hollow square, rounds, other
-A conference room.
+A conference room. We prefer long tables in rows so that participants may use their laptops while viewing the projection screen.
 
 ### Food and beverage requests
 No food or beverages requested.
