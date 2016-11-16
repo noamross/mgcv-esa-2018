@@ -64,4 +64,4 @@ No.
 
 ### Describe any known (workshop/event) scheduling conflicts (what should it follow/precede/not conflict with?)
 We would require a Saturday time slot, as one of the organizers (Gavin Simpson) is also organizing 
-the Advanced Vegan Workshop Proposal on Sunday AM and attending the ESA Council meeting on Sunday PM.
+the Advanced Vegan Workshop Proposal on the Sunday.
