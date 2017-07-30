@@ -1,10 +1,10 @@
 # Jekyll configuration
 
 name: mgcv course
-description: Information for the mgcv workshop hosted at the Ecological Society of America Annual Meeting 2016.
+description: Information for the mgcv workshop hosted at the Ecological Society of America Annual Meeting 2017.
 
 # url is currently only used only for the RSS feed in feed.xml
-url: https://eric-pedersen.github.io/mgcv-esa-workshop/
+url: https://noamross.github.io/mgcv-esa-workshop/
 
 # baseurl will often be '', but for a project page on gh-pages, it needs to
 # be the project name.
@@ -13,7 +13,7 @@ url: https://eric-pedersen.github.io/mgcv-esa-workshop/
 baseurl: /mgcv-esa-workshop
 
 # This can be '' to hide the Github nav button
-github: 'eric-pedersen/mgcv-esa-workshop'
+github: 'noamross/mgcv-esa-workshop'
 
 # Set this to your UA-# value, or '' to disable the block completely
 gaaccount: ''

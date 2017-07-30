@@ -1,2 +1,6 @@
 _cache
 _site
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
