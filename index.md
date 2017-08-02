@@ -21,3 +21,22 @@ The workshop will give paricipants an understanding of:
 - the range of modelling possibilities using mgcv.
 
 Participants will be assumed to be familiar with the basics of R (loading/manipulating data, functions, and plotting) and regression in R (`lm()` and `glm()`). The organizers have extensive practical experience with ecological statistics and modelling using `mgcv`.
+
+## Downloads and Installation
+
+- You should have [R](https://cran.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/#download) installed
+- Download <https://github.com/noamross/mgcv-esa-workshop/archive/master.zip>, unzip, and open `mgcv-esa-workshop.Rproj` in RStudio. (You can clone if you are a git user)
+- Use `install.packages` to install any of these packages you may not have:
+
+```
+install.packages(c(
+  "mgcv",
+  "plyr",
+  "ggplot2",
+  "viridis",
+  "dplyr",
+  "tidyr",
+  "mvtnorm",
+  "statmod"
+))
+```
