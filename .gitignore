@@ -1,3 +1,6 @@
 *.Rhistory
 .Rproj.user/
 .Rproj.user
+.Rdata
+slides/*-cache
+slides/*-figure

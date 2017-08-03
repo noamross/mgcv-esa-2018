@@ -1,6 +1,6 @@
 Generalized Additive Models
 ============================
-author: David L Miller
+author: Noam Ross (with lots of slides by David L Miller)
 css: custom.css
 transition: none
 
@@ -8,10 +8,12 @@ transition: none
 Overview
 =========
 
+- Motivation
+- Getting our feet wet with an example
 - What is a GAM?
 - What is smoothing?
 - How do GAMs work? (*Roughly*)
-- Fitting and plotting simple models
+
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -23,16 +25,17 @@ library(mgcv)
 opts_chunk$set(cache=TRUE, echo=FALSE)
 ```
 
-What is a GAM?
-===============
-type:section
-
 Generalized Additive Models
 ============================
 
-- Generalized: many response distributions
-- Additive: terms **add** together
-- Models: well, it's a model...
+- Generalized =  many response distributions
+- Additive = terms **add** together
+- Models = Models
+
+
+***
+
+![](monorail.jpg)
 
 To GAMs from GLMs and LMs
 =============================
@@ -121,27 +124,44 @@ print(p + geom_smooth(method="lm", formula=y~x+poly(x, 2)))
 ```
 
 
-[drumroll]
-=============================
-type:section
+Wait, before we do math, let's talk dolphins
+=============================================
+type:section 
+
+![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
+
+(Sort of.  Let's fire up RStudio)
 
 
-What does a model look like?
-=============================
+How is the GAM different?
+=========================
+
+In GLM we model the mean of data as a sum of linear terms:
 
 $$
-y_i = \beta_0 + \sum_j s_j(x_{ji}) + \epsilon_i
+y_i = \beta_0 +\sum_j \color{red}{ \beta_j x_{ji}} +\epsilon_i
+$$
+
+A GAM is a sum of _smooth functions_ or _smooths_
+
+$$
+y_i = \beta_0 + \sum_j \color{red}{s_j(x_{ji})} + \epsilon_i
 $$
 
 where $\epsilon_i \sim N(0, \sigma^2)$, $y_i \sim \text{Normal}$ (for now)
 
-Remember that we're modelling the mean of this distribution!
+Call the above equation the **linear predictor** in both cases.
 
-Call the above equation the **linear predictor**
 
-Okay, but what about these "s" things?
-====================================
-right:55%
+Why use functions rather that just coefficients?
+=================================================
+right:45%
+
+- Want to model the covariates flexibly
+- Covariates and response not necessarily linearly related!
+- Want some "wiggles"
+
+---
 
 ```{r smoothdat, fig.width=8, fig.height=8}
 
@@ -152,33 +172,68 @@ p <- ggplot(spdat,aes(y=y,x=value)) +
       facet_wrap(~variable, nrow=2)
 print(p)
 ```
-***
-- Think $s$=**smooth**
+
+
+Why use functions rather that just coefficients?
+=================================================
+right:45%
+
 - Want to model the covariates flexibly
 - Covariates and response not necessarily linearly related!
 - Want some "wiggles"
 
-Okay, but what about these "s" things?
-====================================
-right:55%
+---
+
 
 ```{r wsmooths, fig.width=8, fig.height=8}
 p <- p + geom_smooth()
 print(p)
 ```
-***
-- Think $s$=**smooth**
-- Want to model the covariates flexibly
-- Covariates and response not necessarily linearly related!
-- Want some "wiggles"
 
-What is smoothing?
-===============
+
+What are smooths, smoothing, and wiggliness?
+=============================================
 type:section
 
+Splines
+========
 
-Straight lines vs. interpolation
-=================================
+- Functions made of other, simpler **basis functions** (usually polynomials)
+- Each **basis functions** $b_k$ has coefficients $\beta_k$ 
+- Our spline is just the sum: $s(x) = \sum_{k=1}^K \beta_k b_k(x)$
+
+![](images/addbasis.png)
+
+Splines (2)
+===========
+
+Several different _types_ of splines, with different applications
+
+![](images/morebasis.png)
+
+Basis functions of cubic spline (top), and thin-plate spline (bottom)
+
+Splines (3)
+===========
+
+![](images/2dbasis.png)
+
+
+Splines (4)
+===========
+
+- We often write linear models in matrix notation: $X\boldsymbol{\beta}$
+  - $X$ is our data
+  - $\boldsymbol{\beta}$ are parameters we need to estimate
+- For a GAM it's the same
+  - $X$ has columns for each basis function, evaluated at each observation
+  - again, this is the linear predictor
+- Let's look at these:
+
+_Back RStudio to look at this in our model!_
+
+Avoiding Overfitting
+======================
 right:55%
 
 ```{r wiggles, fig.height=8, fig.width=8}
@@ -200,41 +255,10 @@ points(dat$x2, dat$y-mean(dat$y))
 
 ```
 ***
-- Want a line that is "close" to all the data
-- Don't want interpolation -- we know there is "error"
-- Balance between interpolation and "fit"
-
-Splines
-========
-
-- Functions made of other, simpler functions
-- **Basis functions** $b_k$, estimate $\beta_k$ 
-- $s(x) = \sum_{k=1}^K \beta_k b_k(x)$
-- Makes the math(s) much easier
-
-<img src="images/addbasis.png">
-
-Design matrices
-===============
-
-- We often write models as $X\boldsymbol{\beta}$
-  - $X$ is our data
-  - $\boldsymbol{\beta}$ are parameters we need to estimate
-- For a GAM it's the same
-  - $X$ has columns for each basis, evaluated at each observation
-  - again, this is the linear predictor
-  
-Measuring wigglyness
-======================
-
-- Visually:
-  - Lots of wiggles == NOT SMOOTH
-  - Straight line == VERY SMOOTH
-- How do we do this mathematically?
-  - Derivatives!
-  - (Calculus *was* a useful class afterall!)
-
-
+- Want a line that is "close" to all the data (high likelihood)
+- Splines _could_ just fit every data point, but this would be overfitting.  We know there is "error"
+- Easy to overfit - want a _smooth_ curve.
+- How do we measure smoothness? Calculus!
 
 Wigglyness by derivatives
 ==========================
@@ -276,32 +300,33 @@ saveGIF(plot_wiggly(f2, xvals), "wiggly.gif", interval = 0.2, ani.width = 800, a
 
 ![Animation of derivatives](wiggly.gif)
 
-What was that grey bit?
-=========================
+What was that grey bit?: Wigglyness!
+====================================
 
 $$
-\int_\mathbb{R} \left( \frac{\partial^2 f(x)}{\partial^2 x}\right)^2 \text{d}x\\
+\int_\mathbb{R} \left( \frac{\partial^2 f(x)}{\partial^2 x}\right)^2 \text{d}x = \boldsymbol{\beta}^\text{T}S\boldsymbol{\beta} = \large{W}
 $$
 
-(Take some derivatives of the smooth and integrate them over $x$)
+(Wigglyness is 100% the right mathy word)
 
-(*Turns out* we can always write this as $\boldsymbol{\beta}^\text{T}S\boldsymbol{\beta}$, so the $\boldsymbol{\beta}$ is separate from the derivatives)
+We penalize wiggliness to avoid overfitting.
 
-(Call $S$ the **penalty matrix**)
 
 Making wigglyness matter
 =========================
 
-- $\boldsymbol{\beta}^\text{T}S\boldsymbol{\beta}$ measures wigglyness
-- "Likelihood" measures closeness to the data
-- Penalise closeness to the data...
-- Use a **smoothing parameter** to decide on that trade-off...
-  - $\lambda \beta^\text{T}S\beta$
-- Estimate the $\beta_k$ terms but penalise objective
-  - "closeness to data" + penalty
+- $W$ measures **wigglyness**
+- (log) likelihood measures closeness to the data
+- We use a **smoothing parameter** ($\lambda$) to define the trade-off, to find
+the spline coefficients ($B_k$) that maximize
 
-Smoothing parameter
-=======================
+$$
+\log(\text{Likelihood})  - \lambda W
+$$
+
+
+Picking the right smoothing parameter
+=====================================
 
 
 ```{r wiggles-plot, fig.width=15}
@@ -322,370 +347,83 @@ curve(f2,0,1, col="blue", add=TRUE)
 
 ```
 
-Smoothing parameter selection
-==============================
+Picking the right smoothing parameter
+=====================================
 
+- Two ways to think about how to optimize $\lambda$:
+   -  Predictive: Minimize out-of-sample error
+   -  Bayesian:  Put priors on our basis coeffiients
 - Many methods: AIC, Mallow's $C_p$, GCV, ML, REML
-- Recommendation, based on simulation and practice:
-  - Use REML or ML
-  - Reiss \& Ogden (2009), Wood (2011)
+- _Practically_, Use **REML**, because of numerical stability:
   
 <img src="images/remlgcv.png">
 
+Hence `gam(..., method="REML")`
+
 
 Maximum wiggliness
-========================
+==================
 
-- We can set **basis complexity** or "size" ($k$)
-  - Maximum wigglyness
-- Smooths have **effective degrees of freedom** (EDF)
-- EDF < $k$
-- Set $k$ "large enough"
-  - Penalty does the rest
+- We set **basis complexity** or "size" ($k$)
+- This is _maximum wigglyness_, can be thought of as number of small functionns
+  that make up a curve.
+- Once smoothing is applied, curves have fewer have **effective degrees of freedom (EDF)**
 
+**$$\text{EDF} < k$$**
 
-More on this in a bit...
-
-uhoh
-======
-title: none
-type:section
-
-<p align="center"><img width=150% alt="spock sobbing mathematically" src="images/mathematical_sobbing.jpg"></p>
-
-GAM summary
-===========
-
-- Straight lines suck --- we want **wiggles**
-- Use little functions (**basis functions**) to make big functions (**smooths**)
-- Need to make sure your smooths are **wiggly enough**
-- Use a **penalty** to trade off wiggliness/generality 
+- $k$ must be "large enough", the $\lambda$ penalty does the rest
+- Bigger $k$ increases computational cost
+- In *mgcv*, default $k$ values are arbitrary
 
 
-Fitting GAMs in practice
-=========================
-type:section
+A wiggly exercise!
+=============================
 
-Translating maths into R
-==========================
+-  We set $k$ in `s()` terms with `s(variable, k=n)`
+-  Re-fit models with small, medium and large $k$ values.
+-  Look at coefficients, model.matrix, summaries and plots
+-  How do deviance explained, EDF values, smooth shapes change?
+-  What is default $k$?
 
-A simple example:
-
-$$
-y_i = \beta_0 + s(x) + s(w) + \epsilon_i
-$$
-
-where $\epsilon_i \sim N(0, \sigma^2)$
-
-Let's pretend that $y_i \sim \text{Normal}$
-
-- linear predictor: `formula = y ~ s(x) + s(w)`
-- response distribution: `family=gaussian()`
-- data: `data=some_data_frame` 
-
-Putting that together
-======================
-
-```{r echo=TRUE, eval=FALSE}
-my_model <- gam(y ~ s(x) + s(w),
-                family = gaussian(),
-                data = some_data_frame,
-                method = "REML")
-```
-
-- `method="REML"` uses REML for smoothness selection (default is `"GCV.Cp"`)
-
-What about a practical example?
-================================
-type:section
-
-
-Pantropical spotted dolphins
-==============================
-
-- Example taken from Miller et al (2013)
-- [Paper appendix](http://distancesampling.org/R/vignettes/mexico-analysis.html) has a better analysis
-- Simple example here, ignoring all kinds of important stuff!
+***
 
 ![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
 
 
-Inferential aims
-=================
+GAM summary so far
+==================
 
-```{r loaddat}
-load("../data/mexdolphins/mexdolphins.RData")
-```
+- GAMs give us a framework to model  flexible nonlinear relationships
+- Use little functions (**basis functions**) to make big functions (**smooths**)
+- Use a **penalty** to trade off wiggliness/generality 
+- Need to make sure your smooths are **wiggly enough**
 
-```{r gridplotfn}
-library(rgdal)
-library(rgeos)
-library(maptools)
-library(plyr)
-# fill must be in the same order as the polygon data
-grid_plot_obj <- function(fill, name, sp){
-
-  # what was the data supplied?
-  names(fill) <- NULL
-  row.names(fill) <- NULL
-  data <- data.frame(fill)
-  names(data) <- name
-
-  spdf <- SpatialPolygonsDataFrame(sp, data)
-  spdf@data$id <- rownames(spdf@data)
-  spdf.points <- fortify(spdf, region="id")
-  spdf.df <- join(spdf.points, spdf@data, by="id")
-
-  # seems to store the x/y even when projected as labelled as
-  # "long" and "lat"
-  spdf.df$x <- spdf.df$long
-  spdf.df$y <- spdf.df$lat
-
-  geom_polygon(aes_string(x="x",y="y",fill=name, group="group"), data=spdf.df)
-}
-```
-
-- How many dolphins are there?
-- Where are the dolphins?
-- What are they interested in?
-
-```{r spatialEDA, fig.cap="", fig.width=15}
-
-# some nearby states, transformed
-library(mapdata)
-map_dat <- map_data("worldHires",c("usa","mexico"))
-lcc_proj4 <- CRS("+proj=lcc +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs ")
-map_sp <- SpatialPoints(map_dat[,c("long","lat")])
-
-# give the sp object a projection
-proj4string(map_sp) <-CRS("+proj=longlat +datum=WGS84")
-# re-project
-map_sp.t <- spTransform(map_sp, CRSobj=lcc_proj4)
-map_dat$x <- map_sp.t$long
-map_dat$y <- map_sp.t$lat
-
-pred.polys <- spTransform(pred_latlong, CRSobj=lcc_proj4) 
-p <- ggplot() +
-      grid_plot_obj(preddata$depth, "Depth", pred.polys) + 
-      geom_line(aes(x, y, group=Transect.Label), data=mexdolphins) +
-      geom_polygon(aes(x=x, y=y, group = group), fill = "#1A9850", data=map_dat) +
-      geom_point(aes(x, y, size=count),
-                 data=mexdolphins[mexdolphins$count>0,],
-                 colour="red", alpha=I(0.7)) +
-      coord_fixed(ratio=1, ylim = range(mexdolphins$y), xlim = range(mexdolphins$x)) +
-      scale_fill_viridis() +
-      labs(fill="Depth",x="x",y="y",size="Count") +
-      theme_minimal()
-#p <- p + gg.opts
-print(p)
-```
-
-A simple dolphin model
-===============
-
-```{r firstdsm, echo=TRUE}
-library(mgcv)
-dolphins_depth <- gam(count ~ s(depth) + offset(off.set),
-                      data = mexdolphins,
-                      family = quasipoisson(),
-                      method = "REML")
-```
-
-- count is a function of depth
-- `off.set` is the effort expended
-- we have count data, try quasi-Poisson distribution
-
-What did that do?
-===================
-
-```{r echo=TRUE}
-summary(dolphins_depth)
-```
-
-Plotting
-================
-
-```{r plotsmooth}
-plot(dolphins_depth)
-```
-***
-- `plot(dolphins_depth)`
-- Dashed lines indicate +/- 2 standard errors
-- Rug plot
-- On the link scale
-- EDF on $y$ axis
-
-Thin plate regression splines
-================================
-
-- Default basis
-- One basis function per data point
-- Reduce # basis functions (eigendecomposition)
-- Fitting on reduced problem
-- Multidimensional
-- Wood (2003)
-
-
-Bivariate terms
-================
-
-- Assumed an additive structure
-- No interaction
-- We can specify `s(x,y)` (and `s(x,y,z,...)`)
-- (Assuming *isotropy* here...)
-
-```{r xydsmplot, fig.width=15, fig.height=7}
-dolphins_depth_xy <- gam(count ~ s(x, y) + offset(off.set),
-                 data = mexdolphins,
-                 family=quasipoisson(), method="REML")
-par(mfrow=c(1,3))
-vis.gam(dolphins_depth_xy, view=c("x","y"), phi=45, theta=20, asp=1)
-vis.gam(dolphins_depth_xy, view=c("x","y"), phi=45, theta=60, asp=1)
-vis.gam(dolphins_depth_xy, view=c("x","y"), phi=45, theta=160, asp=1)
-```
-
-Adding a term
-===============
-
-- Add a **surface** for location ($x$ and $y$)
-- Just use `+` for an extra term
-
-```{r xydsm, echo=TRUE}
-dolphins_depth_xy <- gam(count ~ s(depth) + s(x, y) + offset(off.set),
-                 data = mexdolphins,
-                 family=quasipoisson(), method="REML")
-```
-
-
-Summary
-===================
-
-```{r echo=TRUE}
-summary(dolphins_depth_xy)
-```
-
-Plotting
-================
-
-```{r plotsmooth-xy, fig.width=12, echo=TRUE}
-plot(dolphins_depth_xy, scale=0, pages=1)
-```
-- `scale=0`: each plot on different scale
-- `pages=1`: plot together
-
-
-Plotting 2d terms... erm...
-================
-
-```{r plotsmooth-xy-biv, fig.width=15, fig.height=7, echo=TRUE}
-plot(dolphins_depth_xy, select=2, cex=2, asp=1, lwd=2)
-```
-
-- `select=` picks which smooth to plot
-
-Let's try something different
-===============================
-
-```{r plot-scheme2, echo=TRUE, fig.width=10}
-plot(dolphins_depth_xy, select=2, cex=2, asp=1, lwd=2, scheme=2)
-```
-- `scheme=2` much better for bivariate terms
-- `vis.gam()` is much more general
-
-More complex plots
-===================
-
-```{r visgam, fig.width=15, echo=TRUE}
-par(mfrow=c(1,2))
-vis.gam(dolphins_depth_xy, view=c("depth","x"), too.far=0.1, phi=30, theta=45)
-vis.gam(dolphins_depth_xy, view=c("depth","x"), plot.type="contour", too.far=0.1,asp=1/1000)
-```
-
-
-Fitting/plotting GAMs summary
-=============================
-
-- `gam` does all the work
-- very similar to `glm`
-- `s` indicates a smooth term
-- `plot` can give simple plots
-- `vis.gam` for more advanced stuff
-
-
-Prediction
-===========
+Check-in: do we need COFFEE?
+============================
 type:section
+
+Predictions and Uncertainty
+===========================
+type:section
+
 
 What is a prediction?
 =====================
 
 - Evaluate the model, at a particular covariate combination
-- Answering (e.g.) the question "at a given depth, how many dolphins?"
+- Answering (e.g.) the question "at a given depth and location how many dolphins?"
 - Steps:
   1. evaluate the $s(\ldots)$ terms
   2. move to the response scale (exponentiate? Do nothing?)
   3. (multiply any offset etc)
-
-Example of prediction
-======================
-
-- in maths:
-  - Model: $\text{count}_i = A_i \exp \left( \beta_0 + s(x_i, y_i) + s(\text{Depth}_i)\right)$
-  - Drop in the values of $x, y, \text{Depth}$ (and $A$)
-- in R:
-  - build a `data.frame` with $x, y, \text{Depth}, A$
-  - use `predict()`
-
-```{r echo=TRUE, eval=FALSE}
-preds <- predict(my_model, newdat=my_data, type="response")
-```
-
-(`se.fit=TRUE` gives a standard error for each prediction)
-
-Back to the dolphins...
-=======================
-type:section
-
-Where are the dolphins?
-=======================
-
-```{r echo=TRUE}
-dolphin_preds <- predict(dolphins_depth_xy, newdata=preddata,
-                         type="response")
-```
-
-```{r fig.width=20}
-p <- ggplot() +
-      grid_plot_obj(dolphin_preds, "N", pred.polys) + 
-      geom_line(aes(x, y, group=Transect.Label), data=mexdolphins) +
-      geom_polygon(aes(x=x, y=y, group = group), fill = "#1A9850", data=map_dat) +
-      geom_point(aes(x, y, size=count),
-                 data=mexdolphins[mexdolphins$count>0,],
-                 colour="red", alpha=I(0.7)) +
-      coord_fixed(ratio=1, ylim = range(mexdolphins$y), xlim = range(mexdolphins$x)) +
-      scale_fill_viridis() +
-      labs(fill="Predicted\ndensity", x="x", y="y", size="Count") +
-      theme_minimal()
-print(p)
-```
-
-(`ggplot2` code included in the slide source)
-
-Prediction summary
-==================
-
-- Evaluate the fitted model at a given point
-- Can evaluate many at once (`data.frame`)
-- Don't forget the `type=...` argument!
-- Obtain per-prediction standard error with `se.fit`
+  
+$$\text{count}_i = A_i \exp \left( \beta_0 + s(x_i, y_i) + s(\text{Depth}_i)\right)$$
 
 What about uncertainty?
 ========================
 type:section
-
 Without uncertainty, we're not doing statistics 
-========================
-type:section
+
 
 Where does uncertainty come from?
 =================================
@@ -693,139 +431,77 @@ Where does uncertainty come from?
 - $\boldsymbol{\beta}$: uncertainty in the spline parameters
 - $\boldsymbol{\lambda}$: uncertainty in the smoothing parameter
 
-- (Traditionally we've only addressed the former)
-- (New tools let us address the latter...)
-
 
 Parameter uncertainty
 =======================
 
-From theory:
+All the model coefficients together have **approximately**
+a multi-normal distribution around the mean:
 
 $$
 \boldsymbol{\beta} \sim N(\hat{\boldsymbol{\beta}},  \mathbf{V}_\boldsymbol{\beta})
 $$
 
-(*caveat: the normality is only* **approximate** *for non-normal response*)
+However, this is a distribution _dependent on the smoothing parameter_.
 
+In **mgcv**, `vcov(model)` returns $\mathbf{V}_\boldsymbol{\beta}$, the variance-covariance
+matrix of the coefficients.
 
-**What does this mean?** Variance for each parameter.
+`vcov(mode, unconditional = TRUE)` corrects for uncertainty in the smoothing parameter.
 
-In `mgcv`: `vcov(model)` returns $\mathbf{V}_\boldsymbol{\beta}$.
-
-
-What can we do this this?
-===========================
+How do we make use of this information?
+========================================
 
 - confidence intervals in `plot`
-- standard errors using `se.fit`
-- derived quantities? (see bibliography)
+- standard errors using `se.fit` in the `predict()` function
+- simulating from the distribution of our coefficients using $\mathbf{V}_\boldsymbol{\beta}$
 
-blah
-====
-title:none
-type:section
+Back to sea!
+============
 
-<img src="images/tina-modelling.png">
+![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
+
+Exercise
+========
+
+-  Make predictions of dolphin counts at all points in `preddata`.
+-  plot separate maps of mean, low, and high estimates
 
 
+Varying spline shapes
+=====================
 
-The lpmatrix, magic, etc
-==============================
+-  Because our spline coefficients _covary_, it can be somewhat misleading
+   to just plot confidence intervals.  Sometimes we want to look at a better
+   sample of possible predictions.
+   
+-  We can _sample_ value of our coefficents from a mutivariate normal using `vcov(model)`.
 
-For regular predictions:
-
-$$
-\hat{\boldsymbol{\eta}}_p = L_p \hat{\boldsymbol{\beta}}
-$$
-
-form $L_p$ using the prediction data, evaluating basis functions as we go.
-
-(Need to apply the link function to $\hat{\boldsymbol{\eta}}_p$)
-
-But the $L_p$ fun doesn't stop there...
-
-[[mathematics intensifies]]
-============================
-type:section
-
-Variance and lpmatrix
-======================
-
-To get variance on the scale of the linear predictor:
+-  Since our model is ultimately a linear function of these coefficients, 
+   we can predict using
 
 $$
-V_{\hat{\boldsymbol{\eta}}} = L_p^\text{T} V_\hat{\boldsymbol{\beta}} L_p
+\hat{y} = L_p \boldsymbol{\hat{\beta}}
 $$
 
-pre-/post-multiplication shifts the variance matrix from parameter space to linear predictor-space.
-
-(Can then pre-/post-multiply by derivatives of the link to put variance on response scale)
+Where $L_p$ is the linear predictor matrix, which constructed from our data
+and our basis functions.
 
 Simulating parameters
 ======================
 
-- $\boldsymbol{\beta}$ has a distribution, we can simulate
-
-```{r paramsim, results="hide"}
-library(mvtnorm)
-
-# get the Lp matrix
-Lp <- predict(dolphins_depth_xy, newdata=preddata, type="lpmatrix")
-
-# how many realisations do we want?
-frames <- 100
-
-# generate the betas from the GAM "posterior"
-betas <- rmvnorm(frames, coef(dolphins_depth_xy), vcov(dolphins_depth_xy))
-
-
-# use a function to get animation to play nice...
-anim_map <- function(){
-  # loop to make plots
-  for(frame in 1:frames){
-
-    # make the prediction
-    preddata$preds <- preddata$area * exp(Lp%*%betas[frame,])
-
-    # plot it (using viridis)
-    p <- ggplot() +
-          grid_plot_obj(preddata$preds, "N", pred.polys) + 
-          geom_polygon(aes(x=x, y=y, group = group), fill = "#1A9850", data=map_dat) +
-          coord_fixed(ratio=1, ylim = range(mexdolphins$y),
-                      xlim = range(mexdolphins$x)) +
-          scale_fill_viridis(limits=c(0,200)) +
-          labs(fill="Predicted\ndensity",x="x",y="y",size="Count") +
-          theme_minimal()
-    
-    print(p)
-  }
-}
-
-# make the animation!
-saveGIF(anim_map(), "uncertainty.gif", outdir = "new", interval = 0.15, ani.width = 800, ani.height = 400)
-```
-
 ![Animation of uncertainty](uncertainty.gif)
 
-Uncertainty in smoothing parameter
-==================================
 
-- Recent work by Simon Wood
-- "smoothing parameter uncertainty corrected" version of $V_\hat{\boldsymbol{\beta}}$
-- In a fitted model, we have:
-  - `$Vp` what we got with `vcov`
-  - `$Vc` the corrected version
-- Still experimental
-
-Variance summary
-================
+Prediction / Uncertainty Summary
+================================
 
 - Everything comes from variance of parameters
+- Can include uncertainty in the smoothing parameter too
 - Need to re-project/scale them to get the quantities we need
 - `mgcv` does most of the hard work for us
-- Fancy stuff possible with a little maths
-- Can include uncertainty in the smoothing parameter too
+- Fancy stuff possible with a little math
+
 
 Okay, that was a lot of information
 ===================================

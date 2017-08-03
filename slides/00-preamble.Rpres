@@ -1,18 +1,22 @@
-The mgcv package as a one-stop-shop for fitting non-linear ecological models
+Fitting Non-Linear Models in R with the mgcv Package
 ============================
-author: David L Miller, Eric Pedersen, and Gavin L Simpson
 css: custom.css
 transition: none
 
+Gavin L Simpson and Noam Ross
+
+(with Dave Miller and Eric Pedersen _in absentia_)
+
+Download/Install materials from **bit.ly/mgcv2017**
 
 Good morning!
 ==============
 type: section
 
-
-
 Logistics
 ==========
+- where is power?
+- what's the wifi?
 - where is the coffee?
 - where is the bathroom?
 - what if there is a fire?
@@ -20,15 +24,6 @@ Logistics
 Who are we?
 ===========
 type:section
-
-
-Eric Pedersen
-=============
-- Populuation, community, and movement ecologist
-- (sort of) Fisheries (sort of) ecologist
-- Movement and life-history modelling 
-- Connecting theoretical models to data with statistics
-- Unreasonably obsessed with smoothing and penalization as a solution to all of life's problems
 
 Gavin Simpson
 =============
@@ -39,14 +34,16 @@ Gavin Simpson
 - Ecological stats software (vegan plus some palaeo stuff)
 - To me most things are a model I can (will!) fit with *mgcv*
 
-David L Miller
-===============
+Noam Ross
+=========
 
-- Cetacean distribution modelling
-- Spatial modelling (esp. model checking)
-- Distance sampling [distancesampling.org](http://distancesampling.org)
-- Statistical software (`Distance`, `mrds`, `dsm`)
-- Trying to shoehorn all projects into `mgcv`
+- Disease and theoretical ecologist at [EcoHealth Alliance](ecohealthalliance.org)
+- Disease spillover dynamics
+- Host/pathogen macroecology
+- Stochastic and network population processes
+- Fitting time-series data to mechanistic models
+- R package development editor with [rOpenSci](https://ropensci.org/)
+- `mgcv`for time and species traits, and as alternative to black-box machine learning.
 
 
 Who are you?
