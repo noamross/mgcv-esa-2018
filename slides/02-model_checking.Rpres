@@ -1,6 +1,6 @@
 Model checking
 ============================
-author: Eric J Pedersen
+author: Noam Ross (with lots of help from Eric J Pedersen)
 date: August 6th, 2016
 css: custom.css
 transition: none
@@ -11,22 +11,7 @@ Outline
 So you have a GAM:
 - How do you know you have the right degrees of freedom? `gam.check()`
 - Diagnosing model issues: `gam.check()` part 2
-- Do you have the right error model? Randomized quantile residuals
 - When covariates aren't independent: estimating concurvity
-
-
-Packages you'll need to follow along:
-======================================
-```{r setup, include=TRUE}
-
-library(mgcv)
-library(magrittr)
-library(ggplot2)
-library(dplyr)
-library(statmod)
-source("quantile_resid.R")
-
-```
 
 ```{r pres_setup, include =F}
 library(knitr)
@@ -165,7 +150,6 @@ layout(1)
 ```
 
 
-
 Using gam.check() part 2: visual checks
 =============================
 type:section
@@ -220,72 +204,13 @@ gam.check(negbin_model)
 
 Exercises
 =============
-1. Work with the `y_negbinom` data. Try fitting both Poisson and negative
-binomial model, with different degrees of freedom. Using model summaries and
-`gam.check`, determine which model requires more degrees of freedom to fit well.
-How do the fitted functions vary between the two?
+1. You previously fit models to dolphin models with various $k$ values.  Run
+`gam.check()` on models with both high and low values and inspect the results.
 
-2. Using the `y_binomial` data, fit a smooth model with `family=binomial`, and
-use `gam.check()` to determine the appropriate degrees of freedom. What do the
-`gam.check()` plots tell you about model fit?
+2. Look at the `gam.check()` plots and find other problems with residual distribution.
+Can you fix these?
+    -   (Hint: look at `?quasipoisson`, `?negbin`, and `?tw`)
 
-Fixing Residuals
-=================
-type:section
-
-What are residuals?
-====================
-
-- Generally residuals = observed value - fitted value
-- BUT hard to see patterns in these "raw" residuals
-- Need to standardise -- **deviance residuals**
-- Residual sum of squares $\Rightarrow$ linear model
-  - deviance $\Rightarrow$ GAM
-- Expect these residuals $\sim N(0,1)$
-
-
-
-Shortcomings
-=============
-
-- `gam.check` left side can be helpful
-- Right side is victim of artifacts
-- Need an alternative
-- "Randomised quantile residuals" (*experimental*)
-  - `rqresiduals`
-  - Exactly normal residuals ... if the model is right!
-
-
-Using randomized quantile residuals
-=============
-
-
-```{r rqresid1, include=T,echo=TRUE, results="hide", fig.width=12, fig.height=6,fig.align="center"}
-pois_model = gam(y_negbinom~s(x1,k=12)+s(x2,k=12),family=poisson,method= "REML")
-pois_resid = residuals(pois_model, type="deviance")
-pois_rqresid = rqresiduals(pois_model)
-layout(matrix(1:2, nrow=1))
-plot(pois_model$linear.predictors,pois_resid)
-plot(pois_model$linear.predictors,pois_rqresid)
-```
-
-Using randomized quantile residuals
-=============
-
-
-```{r rqresid2, include=T,echo=TRUE, results="hide", fig.width=12, fig.height=6,fig.align="center"}
-negbin_model = gam(y_negbinom~s(x1,k=12)+s(x2,k=12),family=nb,method= "REML")
-negbin_rqresid = rqresiduals(negbin_model)
-layout(matrix(1:2, nrow=1))
-plot(pois_model$linear.predictors,pois_rqresid)
-plot(negbin_model$linear.predictors,negbin_rqresid)
-```
-
-
-Exercise
-=========
-Use the `rqresiduals` function to test the model residuals for patterns
-from your binomial model from the previous exercise
 
 Concurvity
 =============================
@@ -319,11 +244,16 @@ plot(x1_cc,x2_cc)
 y = 3 + cos(pi*x1_cc) + 1/(1+exp(-5*(x2_cc)))
 m1 = gam(y~s(x1_cc)+s(x2_cc),method= "REML")
 plot(m1,scale=0)
-print("concurvity(m1)")
-print(round(concurvity(m1),2))
+print("concurvity(m1, full=FALSE)")
 ```
 
+A demonstration
+=============================
 
+```{r}
+print("concurvity(m1, full=FALSE)")
+print(lapply(concurvity(m1, full=FALSE), function(x) round(x, 3)))
+```
 
 A demonstration
 =============================
@@ -411,7 +341,4 @@ You should at least:
 3. Make sure there's no patterns left in your data
 
 4. If you have time series, grouped, spatial, etc. data, check for dependencies
-
-
-We'll get into testing for dependence later on in the extended examples.
 
