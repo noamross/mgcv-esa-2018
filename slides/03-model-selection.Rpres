@@ -1,7 +1,7 @@
 GAMs: Model Selection
 ============================
-author: David L Miller, Eric Pedersen, and Gavin L Simpson
-date: August 6th, 2016
+author: Gavin L Simpson
+date: August 5th, 2017
 css: custom.css
 transition: none
 
@@ -9,8 +9,8 @@ Overview
 =========
 
 - Model selection
-- Shrinkage smooths
 - Shrinkage via double penalty (`select = TRUE`)
+- Shrinkage smooths
 - Confidence intervals for smooths
 - *p* values
 - `anova()`
@@ -33,7 +33,7 @@ type:section
 Model selection
 ===============
 
-Model (or variable) selection --- and important area of theoretical and applied interest
+Model (or variable) selection --- an important area of theoretical and applied interest
 
 - In statistics we aim for a balance between *fit* and *parsimony*
 - In applied research we seek the set of covariates with strongest effects on $y$
@@ -60,59 +60,63 @@ Shrinkage & additional penalties
 **mgcv** has two ways to penalize the null space, i.e. to do selection
 
 - *double penalty approach* via `select = TRUE`
-- *shrinkage approach* via special bases for thin plate and cubic splines
+- *shrinkage approach* via special bases for
+    - thin plate spline (default, `s(..., bs = 'ts')`),
+    - cubic splines  (`s(..., bs = 'cs')`)
 
-Other shrinkage/selection approaches are available
+**double penalty** tends to works best, but applies to all smooths *and* doubles the number of smoothness parameters to estimate
 
-Double-penalty shrinkage
-========================
+Other shrinkage/selection approaches are available in other software
 
-$\mathbf{S}_j$ is the smoothing penalty matrix & can be decomposed as
+<!-- Double-penalty shrinkage -->
+<!-- ======================== -->
 
-$$
-\mathbf{S}_j = \mathbf{U}_j\mathbf{\Lambda}_j\mathbf{U}_j^{T}
-$$
+<!-- $\mathbf{S}_j$ is the smoothing penalty matrix & can be decomposed as -->
 
-where $\mathbf{U}_j$ is a matrix of eigenvectors and $\mathbf{\Lambda}_j$ a diagonal matrix of eigenvalues (i.e. this is an eigen decomposition of $\mathbf{S}_j$).
+<!-- $$ -->
+<!-- \mathbf{S}_j = \mathbf{U}_j\mathbf{\Lambda}_j\mathbf{U}_j^{T} -->
+<!-- $$ -->
 
-$\mathbf{\Lambda}_j$ contains some **0**s due to the spline basis null space --- no matter how large the penalty $\lambda_j$ might get no guarantee a smooth term will be suppressed completely.
+<!-- where $\mathbf{U}_j$ is a matrix of eigenvectors and $\mathbf{\Lambda}_j$ a diagonal matrix of eigenvalues (i.e. this is an eigen decomposition of $\mathbf{S}_j$). -->
 
-To solve this we need an extra penalty...
+<!-- $\mathbf{\Lambda}_j$ contains some **0**s due to the spline basis null space --- no matter how large the penalty $\lambda_j$ might get no guarantee a smooth term will be suppressed completely. -->
 
-Double-penalty shrinkage
-========================
+<!-- To solve this we need an extra penalty... -->
 
-Create a second penalty matrix from $\mathbf{U}_j$, considering only the matrix of eigenvectors associated with the zero eigenvalues
+<!-- Double-penalty shrinkage -->
+<!-- ======================== -->
 
-$$
-\mathbf{S}_j^{*} = \mathbf{U}_j^{*}\mathbf{U}_j^{*T}
-$$
+<!-- Create a second penalty matrix from $\mathbf{U}_j$, considering only the matrix of eigenvectors associated with the zero eigenvalues -->
 
-Now we can fit a GAM with two penalties of the form
+<!-- $$ -->
+<!-- \mathbf{S}_j^{*} = \mathbf{U}_j^{*}\mathbf{U}_j^{*T} -->
+<!-- $$ -->
 
-$$
-\lambda_j \mathbf{\beta}^T \mathbf{S}_j \mathbf{\beta} + \lambda_j^{*} \mathbf{\beta}^T \mathbf{S}_j^{*} \mathbf{\beta}
-$$
+<!-- Now we can fit a GAM with two penalties of the form -->
 
-Which implies two sets of penalties need to be estimated.
+<!-- $$ -->
+<!-- \lambda_j \mathbf{\beta}^T \mathbf{S}_j \mathbf{\beta} + \lambda_j^{*} \mathbf{\beta}^T \mathbf{S}_j^{*} \mathbf{\beta} -->
+<!-- $$ -->
 
-In practice, add `select = TRUE` to your `gam()` call
+<!-- Which implies two sets of penalties need to be estimated. -->
 
-Shrinkage
-=========
+<!-- In practice, add `select = TRUE` to your `gam()` call -->
 
-The double penalty approach requires twice as many smoothness parameters to be estimated. An alternative is the shrinkage approach, where $\mathbf{S}_j$ is replaced by
+<!-- Shrinkage -->
+<!-- ========= -->
+
+<!-- The double penalty approach requires twice as many smoothness parameters to be estimated. An alternative is the shrinkage approach, where $\mathbf{S}_j$ is replaced by -->
 
 
-$$
-\tilde{\mathbf{S}}_j = \mathbf{U}_j\tilde{\mathbf{\Lambda}}_j\mathbf{U}_j^{T}
-$$
+<!-- $$ -->
+<!-- \tilde{\mathbf{S}}_j = \mathbf{U}_j\tilde{\mathbf{\Lambda}}_j\mathbf{U}_j^{T} -->
+<!-- $$ -->
 
-where $\tilde{\mathbf{\Lambda}}_j$ is as before except the zero eigenvalues are set to some small value $\epsilon$.
+<!-- where $\tilde{\mathbf{\Lambda}}_j$ is as before except the zero eigenvalues are set to some small value $\epsilon$. -->
 
-This allows the null space terms to be shrunk by the standard smoothing parameters.
+<!-- This allows the null space terms to be shrunk by the standard smoothing parameters. -->
 
-Use `s(..., bs = "ts")` or `s(..., bs = "cs")` in **mgcv**
+<!-- Use `s(..., bs = "ts")` or `s(..., bs = "cs")` in **mgcv** -->
 
 Empirical Bayes...?
 ===================
@@ -159,8 +163,8 @@ plot_grid(p1, p2, p3, p4, ncol = 2, align = "vh", labels = paste0("x", 1:4))
 ***
 
 - Simulate Poisson counts
-- 4 known functions
-- 2 spurious covariates
+- 4 known functions (left)
+- 2 spurious covariates (`runif()` & not shown)
 
 Example
 =======
@@ -262,7 +266,7 @@ p values for smooths
 
 ...are approximate:
 
-1. they don't really account for the estimation of $\lambda_j$ --- treated as known
+1. they don't account for the estimation of $\lambda_j$ --- treated as known, hence *p* values are biased low
 2. rely on asymptotic behaviour --- they tend towards being right as sample size tends to $\infty$
 
 Also, *p* values in `summary.gam()` have changed a lot over time --- all options except current default are deprecated as of `v1.18-13`.
@@ -345,11 +349,18 @@ anova() --- multi model form
 The multi-model form should really be used with care --- the *p* values are really *approximate*
 
 ```{r anova-example-multi, echo = TRUE}
-b1 <- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3) + s(x4) + s(x5), data = dat,
-         family=poisson, method = "ML")
+b1 <- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3) + s(x4) + s(x5),
+          data = dat, family=poisson, method = "ML")
 b2 <- update(b1, . ~ . - s(x3) - s(x4) - s(x5))
-anova(b2, b1, test = "LRT")
+anova(b2, b1, test = "Chisq")
 ```
+
+anova() --- multi model form
+=============================
+
+The multi-model form should really be used with care --- the *p* values are really *approximate*
+
+*Don't used for testing random effect splines!*
 
 For *general smooths* deviance is replaced by $-2\mathcal{L}(\hat{\beta})$
 
@@ -363,7 +374,7 @@ AIC for GAMs
 - Comparison of GAMs by a form of AIC is an alternative frequentist approach to model selection
 - Rather than using the marginal likelihood, the likelihood of the $\mathbf{\beta}_j$ *conditional* upon $\lambda_j$ is used, with the EDF replacing $k$, the number of model parameters
 - This *conditional* AIC tends to select complex models, especially those with random effects, as the EDF ignores that $\lambda_j$ are estimated
-- Wood et al (2015) suggests a correction that accounts for uncertainty in $\lambda_j$
+- Wood et al (2016) suggests a correction that accounts for uncertainty in $\lambda_j$
 
 $$
 AIC = -2l(\hat{\beta}) + 2\mathrm{tr}(\widehat{\mathcal{I}}V^{'}_{\beta})
@@ -378,11 +389,18 @@ In this example, $x_3$, $x_4$, and $x_5$ have no effects on $y$
 AIC(b1, b2)
 ```
 
+When there is *no difference* in compared models, accepts larger model ~16% of the time: consistent with probability AIC chooses a model with 1 extra spurious parameter $Pr(\chi^2_1 > 2)$
+
+```{r aic-chisq, echo = TRUE}
+pchisq(2, 1, lower.tail = FALSE)
+```
+
 References
 ==========
 - [Marra & Wood (2011) *Computational Statistics and Data Analysis* **55** 2372--2387.](http://doi.org/10.1016/j.csda.2011.02.004)
-- [Marra & Wood (2012) *Scandinavian journal of statistics, theory and applications* **39**(1), 53--74.](http://doi.org/10.1111/j.1467-9469.2011.00760.x.)
+- [Marra & Wood (2012) *Scandinavian Journal of Statistics, Theory and Applications* **39**(1), 53--74.](http://doi.org/10.1111/j.1467-9469.2011.00760.x.)
 - [Nychka (1988) *Journal of the American Statistical Association* **83**(404) 1134--1143.](http://doi.org/10.1080/01621459.1988.10478711)
-- Wood (2006) *Generalized Additive Models: An Introduction with R*. Chapman and Hall/CRC.
+- Wood (2006, 2017) *Generalized Additive Models: An Introduction with R*. Chapman and Hall/CRC. (New 2nd Edition)
 - [Wood (2013a) *Biometrika* **100**(1) 221--228.](http://doi.org/10.1093/biomet/ass048)
 - [Wood (2013b) *Biometrika* **100**(4) 1005--1010.](http://doi.org/10.1093/biomet/ast038)
+- [Wood et al (2016) *JASA* **111** 1548--1563](https://doi.org/10.1080/01621459.2016.1180986)
