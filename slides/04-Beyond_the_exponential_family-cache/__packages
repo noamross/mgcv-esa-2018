@@ -1,0 +1,11 @@
+base
+knitr
+nlme
+mgcv
+magrittr
+ggplot2
+dplyr
+tidyr
+tweedie
+RColorBrewer
+bindrcpp
