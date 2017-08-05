@@ -1,0 +1,10 @@
+base
+knitr
+viridisLite
+viridis
+ggplot2
+reshape2
+animation
+nlme
+mgcv
+numDeriv

@@ -1,0 +1,558 @@
+Beyond the exponential family
+============================
+author: Eric Pedersen, Gavin Simpson, David Miller, Noam Ross
+date:  August 5th, 2017
+css: custom.css
+transition: none
+
+
+Away from the exponential family
+===================================
+incremental: true
+
+Most glm families (Poisson, Gamma, Gaussian, Binomial) are *exponential families*
+
+$$ f(x|\theta) \sim exp(\sum_i \eta_i(\theta)T_i(x) - A(\theta))$$
+
+- Computationally easy
+- Has sufficient statistics: easier to estimate parameter variance
+- ... but it doesn't describe everything
+- `mgcv` has expanded to cover many new families
+- Lets you model a much wider range of scenarios with smooths
+
+
+```{r setup, include=F}
+
+library(mgcv)
+library(magrittr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+```
+
+```{r pres_setup, include =F}
+library(knitr)
+opts_chunk$set(cache=TRUE, echo=FALSE,fig.align="center")
+```
+
+
+What we'll cover
+===================================
+
+- "Counts": Negative binomial and Tweedie distributions
+- Modelling proportions with the Beta distribution
+- Robust regression with the Student's t distribution
+- Ordered and unorderd categorical data
+- Multivariate normal data
+- Modelling exta zeros with zero-inflated and adjusted families
+
+- _NOTE_: All the distributions we're covering here have their own quirks. Read 
+the help files carefully before using them!
+
+Modelling "counts"
+================
+type:section
+
+Counts and count-like things
+============================
+
+- Response is a count (not always integer)
+- Often, it's mostly zero (that's complicated)
+- Could also be catch per unit effort, biomass etc
+- Flexible mean-variance relationship
+
+![The Count from Sesame Street](images/count.jpg)
+
+Tweedie distribution
+=====================
+
+```{r tweedie}
+library(tweedie)
+library(RColorBrewer)
+
+# tweedie
+y<-seq(0.01,5,by=0.01)
+pows <- seq(1.2, 1.9, by=0.1)
+
+fymat <- matrix(NA, length(y), length(pows))
+
+i <- 1
+for(pow in pows){
+  fymat[,i] <- dtweedie( y=y, power=pow, mu=2, phi=1)
+  i <- i+1
+}
+
+plot(range(y), range(fymat), type="n", ylab="Density", xlab="x", cex.lab=1.5,
+     main="")
+
+rr <- brewer.pal(8,"Dark2")
+
+for(i in 1:ncol(fymat)){
+  lines(y, fymat[,i], type="l", col=rr[i], lwd=2)
+}
+```
+***
+-  $\text{Var}\left(\text{count}\right) = \phi\mathbb{E}(\text{count})^q$
+- Common distributions are sub-cases:
+  - $q=1 \Rightarrow$ Poisson
+  - $q=2 \Rightarrow$ Gamma
+  - $q=3 \Rightarrow$ Normal
+- We are interested in $1 < q < 2$ 
+- (here $q = 1.2, 1.3, \ldots, 1.9$)
+- `tw()`
+
+
+Negative binomial
+==================
+
+```{r negbin}
+y<-seq(1,12,by=1)
+disps <- seq(0.001, 1, len=10)
+
+fymat <- matrix(NA, length(y), length(disps))
+
+i <- 1
+for(disp in disps){
+  fymat[,i] <- dnbinom(y, size=disp, mu=5)
+  i <- i+1
+}
+
+plot(range(y), range(fymat), type="n", ylab="Density", xlab="x", cex.lab=1.5,
+     main="")
+
+rr <- brewer.pal(8,"Dark2")
+
+for(i in 1:ncol(fymat)){
+  lines(y, fymat[,i], type="l", col=rr[i], lwd=2)
+}
+```
+***
+- $\text{Var}\left(\text{count}\right) =$ $\mathbb{E}(\text{count}) + \kappa \mathbb{E}(\text{count})^2$
+- Estimate $\kappa$
+- Is quadratic relationship a "strong" assumption?
+- Similar to Poisson: $\text{Var}\left(\text{count}\right) =\mathbb{E}(\text{count})$ 
+- `nb()`
+
+
+
+
+Modelling proportions
+======================
+type:section 
+
+The Beta distribution
+======================
+
+```{r beta-dist}
+shape1 <- c(0.2, 1, 5, 1, 3, 1.5)
+shape2 <- c(0.2, 3, 1, 1, 1.5, 3)
+x <- seq(0.01, 0.99, length = 200)
+rr <- brewer.pal(length(shape1), "Dark2")
+fymat <- mapply(dbeta, shape1, shape2, MoreArgs = list(x = x))
+matplot(x, fymat, type = "l", col = rr, lwd = 2, lty = "solid")
+legend("top", bty = "n",
+       legend = expression(alpha == 0.2 ~~ beta == 0.2,
+                           alpha == 1.0 ~~ beta == 3.0,
+                           alpha == 5.0 ~~ beta == 1.0,
+                           alpha == 1.0 ~~ beta == 1.0,
+                           alpha == 3.0 ~~ beta == 1.5,
+                           alpha == 1.5 ~~ beta == 3.0),
+       col = rr, cex = 1.25, lty = "solid", lwd = 2)
+```
+
+***
+
+- Proportions; continuous, bounded at 0 & 1
+- Beta distribution is convenient choice
+- Two strictly positive shape parameters, $\alpha$ & $\beta$
+- Has support on $x \in (0,1)$
+- Density at $x = 0$ & $x = 1$ is $\infty$, fudge
+- **betareg** package
+- `betar()` family in **mgcv**
+
+Beta or Binomial?
+=================
+
+The binomial model also model's proportions --- more specifically it models the number of successes in $m$ trials. If you have data of this form then model the binomial counts as this can yield predicted *counts* if required.
+
+If you have true percentage or proportion data, say estimated proportional plant cover in a quadrat, then the beta model is appropriate.
+
+Also, if all you have is the percentages, the beta model is unlikely to be terribly bad.
+
+Stereotypic behaviour in captive cheetahs
+=========================================
+
+To illustrate the use of the `betar()` family in **mgcv** we use a behavioural data set of observations on captive cheetahs. These data are provided and extensively analysed in Zuur et al () and originate from Quirke et al (2012).
+
+Stereotypic behaviour in captive cheetahs
+=========================================
+
+- data collected from nine zoos
+- at randomised times of day a random number of scans (videos) of captive cheetah behaviour were recorded and analysed over a period of several months
+- presence of stereotypical behaviour was recorded
+- all individuals in an enclosure were assessed; where more than 1 individual data were aggregated over individuals to achieve 1 data point per enclosure per sampling occasion
+- a number of covariates were also recorded
+- data technically a binomial counts but we'll ignore count data and model the proportion of scans showing stereotypical behaviour
+
+Cheetah: data processing
+========================
+
+```{r cheetah-load-data, echo = TRUE}
+cheetah <- read.table("../data/beta-regression/ZooData.txt", header = TRUE)
+names(cheetah)
+cheetah <- transform(cheetah, Raised = factor(Raised),
+                     Feeding = factor(Feeding),
+                     Oc = factor(Oc),
+                     Other = factor(Other),
+                     Enrichment = factor(Enrichment),
+                     Group = factor(Group),
+                     Sex = factor(Sex, labels = c("Male","Female")),
+                     Zoo = factor(Zoo))
+```
+
+Cheetah: model fitting
+======================
+
+```{r cheetah-model, echo = TRUE}
+m <- gam(Proportion ~ s(log(Size)) + s(Visitors) + s(Enclosure) +
+           s(Vehicle) + s(Age) + s(Zoo, bs = "re") + 
+           Feeding + Oc + Other + Enrichment + Group + Sex,
+         data = cheetah, family = betar(), method = "REML")
+```
+
+Cheetah: model summary
+======================
+title: false
+
+```{R cheetah-summary}
+summary(m)
+```
+
+Cheetah: model smooths
+======================
+
+```{R cheetah-plot-smooths, fig.width = 15, fig.height = 8}
+layout(matrix(1:6, ncol = 3, byrow = TRUE))
+plot(m, shade = TRUE, scale = 0, seWithMean = TRUE)
+layout(1)
+```
+
+Modelling outliers
+====================
+type:section
+
+The student-t distribution
+============================
+- Models continuous data w/ longer tails than normal
+- Far less sensitive to outliers
+- Has one extra parameter: df. 
+- bigger df: t dist approaches normal
+
+
+
+
+```{r tplot,fig.width=13, fig.height=5}
+# set.seed(2)
+# dat = data.frame(df = rep(c(2,4,50),each=500))
+# dat$x = rt(1500,df=dat$df)
+# dat$df_val = paste("df = ",dat$df, sep ="")
+# x_val = seq(min(dat$x),max(dat$x), length=200)
+# ggplot(aes(x=x),data=dat)+
+#   geom_density(col="red")+
+#   facet_grid(.~df_val)+
+#   annotate(x=x_val,y=dnorm(x_val), geom = "line")+
+#   theme_bw(base_size = 20)
+
+dat <- data.frame(x = seq(-10, 10, length = 1000))
+dat <- transform(dat,
+                 df = rep(rep(c(2,4,50), each = 1000), times = 2),
+                 distribution = rep(c("t","Gaussian"), each = 3000),
+                 density = c(rep(dnorm(x), 3), dt(x, df = 2), `df=4` = dt(x, df = 4), `df=50` = dt(x, df = 50)))
+ggplot(dat, aes(x = x, y = density, colour = distribution)) +
+  geom_line() + facet_wrap(~ df, ncol = 3, labeller = "label_both") +
+   theme_bw(base_size = 20) + theme(legend.position = "top")
+```
+
+
+
+
+The student-t distribution: Usage
+============================
+```{r texample, eval=FALSE,echo=T}
+set.seed(4)
+n=300
+dat = data.frame(x=seq(0,10,length=n))
+dat$f = 20*exp(-dat$x)*dat$x
+dat$y  = 1*rt(n,df = 3) + dat$f
+norm_mod =  gam(y~s(x,k=20), data=dat, family=gaussian(link="identity"))
+t_mod = gam(y~s(x,k=20), data=dat, family=scat(link="identity"))
+```
+
+The student-t distribution: Usage
+============================
+```{r texample2, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+set.seed(4)
+n=300
+dat = data.frame(x=seq(0,10,length=n))
+dat$f = 20*exp(-dat$x)*dat$x
+dat$y  = 1*rt(n,df = 3) + dat$f
+norm_mod =  gam(y~s(x,k=20), data=dat, family=gaussian(link="identity"))
+t_mod = gam(y~s(x,k=20), data=dat, family=scat(link="identity"))
+predict_norm = predict(norm_mod,se.fit=T)
+predict_t = predict(t_mod,se.fit=T)
+fit_vals = data.frame(x = c(dat$x,dat$x), 
+                      fit =c(predict_norm[[1]],predict_t[[1]]),
+                      se_min = c(predict_norm[[1]] - 2*predict_norm[[2]],
+                                 predict_t[[1]] - 2*predict_t[[2]]),
+                      se_max = c(predict_norm[[1]] + 2*predict_norm[[2]],
+                                 predict_t[[1]] + 2*predict_t[[2]]),
+                      model = rep(c("normal errors","t-errors"),each=n))
+ggplot(aes(x=x,y=fit),data=fit_vals)+
+  facet_grid(.~model)+
+  geom_line(col="red")+
+  geom_ribbon(aes(ymin =se_min,ymax = se_max),alpha=0.5,fill="red")+
+  annotate(x = dat$x,y=dat$y,size=2,geom="point")+
+  annotate(x = dat$x,y=dat$f,size=2,geom="line")+
+  theme_bw(20)
+```
+
+
+
+The student-t distribution: Usage
+============================
+```{r texample3, include =T}
+summary(t_mod)
+```
+
+
+
+
+Modelling multi-dimensional data 
+===========================
+type:section
+
+Ordered categorical data 
+===========================
+- Assumes data are in discrete categories, and categories fall in order
+- e.g.: conservation status: "least concern", "vulnerable", "endangered", "extinct"
+- fits a linear latent model using covariates, w/ threshold for each level
+- First cut-off always occurs at -1 
+
+
+Ordered categorical data 
+===========================
+```{r ocat_ex1, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+set.seed(4)
+n= 100
+dat  = data.frame(body_size = seq(-2,2, length=200))
+dat$linear_predictor = 6*exp(dat$body_size*2)/(1+exp(dat$body_size*2))-2
+
+ggplot(aes(x=body_size, y=linear_predictor),data=dat) + 
+  annotate(x= dat$body_size, ymin=-3,ymax=-1, alpha=0.25,geom="ribbon")+
+  annotate(x= 0, y=-2, label = "least concern",geom="text",size=10)+
+  annotate(x= dat$body_size, ymin=-1,ymax=1.5, alpha=0.25,geom="ribbon",fill="red")+
+  annotate(x= 0, y=0.25, label = "vulnerable",geom="text",size=10)+
+  annotate(x= dat$body_size, ymin=1.5,ymax=2, alpha=0.25,geom="ribbon",fill="blue")+
+  annotate(x= 0, y=1.75, label = "endangered",geom="text",size=10)+
+  annotate(x= 0, y=3.5, label = "extinct",geom="text",size=10)+
+  scale_y_continuous("linear predictor", expand=c(0,0),limits=c(-3,5))+
+  scale_x_continuous("relative body size", expand=c(0,0))+
+  theme_bw(30)+
+  theme(panel.grid = element_blank())
+
+```
+
+
+Ordered categorical data 
+===========================
+```{r ocat_ex2, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+set.seed(4)
+n= 100
+dat  = data.frame(body_size = seq(-2,2, length=200))
+dat$linear_predictor = 6*exp(dat$body_size*2)/(1+exp(dat$body_size*2))-2
+
+ggplot(aes(x=body_size, y=linear_predictor),data=dat) + 
+  geom_line()+
+  geom_ribbon(aes(ymin=linear_predictor-1,ymax=linear_predictor+1),alpha=0.25)+
+  annotate(x= dat$body_size, ymin=-3,ymax=-1, alpha=0.25,geom="ribbon")+
+  annotate(x= 0, y=-2, label = "least concern",geom="text",size=10)+
+  annotate(x= dat$body_size, ymin=-1,ymax=1.5, alpha=0.25,geom="ribbon",fill="red")+
+  annotate(x= 0, y=0.25, label = "vulnerable",geom="text",size=10)+
+  annotate(x= dat$body_size, ymin=1.5,ymax=2, alpha=0.25,geom="ribbon",fill="blue")+
+  annotate(x= 0, y=1.75, label = "endangered",geom="text",size=10)+
+  annotate(x= 0, y=3.5, label = "extinct",geom="text",size=10)+
+  scale_x_continuous("relative body size", expand=c(0,0))+
+  scale_y_continuous("linear predictor",limits=c(-3,5), expand=c(0,0))+
+  theme_bw(30)+
+  theme(panel.grid = element_blank())
+
+```
+
+
+Using ocat
+===========================
+```{r ocat_ex3, include =T,echo=T,results= "hide", fig.width=15, fig.height=5}
+n= 200
+dat = data.frame(x1 = runif(n,-1,1),x2=2*pi*runif(n))
+dat$f = dat$x1^2 + sin(dat$x2)
+dat$y_latent = dat$f + rnorm(n,dat$f)
+dat$y = ifelse(dat$y_latent<0,1, ifelse(dat$y_latent<0.5,2,3))
+ocat_model = gam(y~s(x1)+s(x2), family=ocat(R=3),data=dat)
+plot(ocat_model,page=1)
+```
+
+Using ocat
+===========================
+```{r ocat_ex4, include =T,echo=T, fig.width=15, fig.height=8}
+summary(ocat_model)
+```
+
+Using ocat
+===========================
+```{r ocat_ex5, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+ocat_predict = predict(ocat_model,type = "response")
+colnames(ocat_predict) = c("1","2","3")
+ocat_predict = as.data.frame(ocat_predict)%>%
+  mutate(x= fitted(ocat_model),y=as.numeric(dat$y))%>%
+  gather(pred_level,prediction,`1`:`3`)%>%
+  mutate(pred_level = as.numeric(pred_level),
+         obs_val = as.numeric(y==pred_level))
+
+ggplot(aes(x= x, y= obs_val),data=ocat_predict)+
+  facet_wrap(~pred_level)+
+  geom_point()+
+  geom_line(aes(y= prediction))+
+  theme_bw(30)
+```
+
+Unordered categorical data 
+===========================
+- What do you do if categorical data doesn't fall in a nice order? 
+ ![](images/animal_choice.png)
+ 
+ Unordered categorical data 
+===========================
+
+- Model probability of a category occuring relative to an (arbitrary) reference level
+- one linear equation for each category except the reference class
+- $p(y=i|\mathbf{x}) = exp(\mu_i(\mathbf{x}))/(1+\sum_j exp(\mu_j(\mathbf{x}))$
+- $\mu_i(\mathbf{x}) = s_{1,j}(x_1) + s_{2,j}(x_2)$
+- $p(y=0|\mathbf{x})= 1/(1+\sum_j exp(\mu_j(\mathbf{x}))$
+
+  
+Using the multinom function
+===========================
+ ![](images/animal_codes.png)
+ 
+ ***
+  ![](images/animal_functions.png)
+ 
+ 
+ 
+Using the multinom function
+===========================
+```{r multinom1, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+set.seed(10)
+n= 500
+dat = data.frame(tree_cover = round(runif(n,0,1),2),road_dist=round(10*runif(n),1))
+dat$f_deer = with(dat, 4*exp(-road_dist/2)*road_dist - 2*(tree_cover)^2)
+dat$f_pig = with(dat, log(exp(-road_dist)+0.1)+1)
+prob_matrix = cbind(1, exp(dat$f_deer),exp(dat$f_pig))
+dat$y = apply(prob_matrix,MARGIN = 1,function(x) sample(0:2,size = 1,prob = x))
+model_dat = dat%>% select(tree_cover, road_dist, y)
+```
+
+```{r multinom2, include =T,echo=T, fig.width=15, fig.height=8}
+head(model_dat)
+``` 
+
+***
+ ```{r multinom3, include =T,echo=T, fig.width=6, fig.height=6}
+pairs(model_dat)
+``` 
+
+ 
+Using the multinom function
+===========================
+```{r multinom4, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
+multinom_model = gam(list(y~s(tree_cover)+s(road_dist), ~s(tree_cover)+s(road_dist)),
+                     data= model_dat, family=multinom(K=2))
+plot(multinom_model,page=1,cex.axis=2,cex.lab=2)
+```
+
+
+ 
+Understanding the results
+===========================
+```{r multinom5, include =T,echo=T,results= "hide", fig.width=15, fig.height=4}
+multinom_pred_data = as.data.frame(expand.grid(road_dist =seq(0,10,length=50),
+                                               tree_cover =c(0,0.33,0.66,1)))
+multinom_pred = predict(multinom_model, multinom_pred_data,type = "response")
+colnames(multinom_pred) = c("monkey","deer","pig")
+multinom_pred_data = cbind(multinom_pred_data,multinom_pred)
+multinom_pred_data_long = multinom_pred_data %>%
+  gather(species, probability, monkey, deer,pig)%>%
+  mutate(tree_cover =paste("tree cover = ", tree_cover,sep=""))
+ggplot(aes(road_dist, probability,color=species),data=multinom_pred_data_long)+
+  geom_line()+
+  facet_grid(.~tree_cover)+
+  theme_bw(20)
+
+```
+
+
+Other multivariate distributions to check out
+===================================
+type: section
+
+
+Multivariate normal (family = mvn)
+===========================
+
+- Fit a different smooth model for multiple y-variables, but allowing 
+  correlation between y's
+- Example uses: multi-species distribution models, measuring latent correlations
+  between environmental predictors
+- mgcv code: formula=list(y1~s(x1)+s(x2), y2 = s(x1)+s(x3)), family = mvn(d=2)
+
+Cox Proportional hazards (family = cox.ph)
+===========================
+
+- Censored data: y measures time until an event occurs, or the study was stopped (censoring)
+- Measures relative rates, rather than absolute rates (no intercepts)
+- Example uses: time until an individual is infected, time until a subpopulation goes 
+  extinct, time until lake is invaded
+- mgcv code: `formula = y~s(x1)+s(x2), weights= censor.var,family=cox.ph` 
+- censor.var = 0 if censored, 1 if not
+
+
+Gaussian location-scale models (family = gaulss)
+===========================
+
+- Model both the mean ("location") and variance ("scale") as smooth functions of predictors 
+- Example uses: detecting early warning signs in time series, finding factors driving 
+population variability
+- mgcv code: `formula = list(y~s(x1)+s(x2), ~s(x2)+s(x3)), family=gaulss`
+
+
+
+Zero-inflated Poisson location-scale models (family = ziplss)
+===========================
+
+- Models the probability of zeros seperately from mean counts given that you've observed more than zero
+at a location.
+- Example uses: Counts of prey caught when a predator might switch between not hunting at all (zeros)
+and active hunting
+- mgcv code: `formula = list(y~s(x1)+s(x2), ~s(x2)+s(x3)), family=ziplss` 
+
+
+The end of the distribution zoo
+==============
+type:section 
+
+That's the end of this section! We convene after lunch (1:00 PM). You'll 
+get to work through a few more advanced examples of your choice. 
+
+
+ 

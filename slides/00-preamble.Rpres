@@ -1,0 +1,89 @@
+Fitting Non-Linear Models in R with the mgcv Package
+============================
+css: custom.css
+transition: none
+
+Gavin L Simpson and Noam Ross
+
+(with Dave Miller and Eric Pedersen _in absentia_)
+
+Download/Install materials from **bit.ly/mgcv2017**
+
+Good morning!
+==============
+type: section
+
+Logistics
+==========
+- where is power?
+- what's the wifi?
+- where is the coffee?
+- where is the bathroom?
+- what if there is a fire?
+
+Who are we?
+===========
+type:section
+
+Gavin Simpson
+=============
+
+- (Palaeo)ecologist interested in community dynamics & environmental change
+- (Palaeo)limnologist interested in environmental change
+- Self-taught not-statistician
+- Ecological stats software (vegan plus some palaeo stuff)
+- To me most things are a model I can (will!) fit with *mgcv*
+
+Noam Ross
+=========
+
+- Disease and theoretical ecologist at [EcoHealth Alliance](ecohealthalliance.org)
+- Disease spillover dynamics
+- Host/pathogen macroecology
+- Stochastic and network population processes
+- Fitting time-series data to mechanistic models
+- R package development editor with [rOpenSci](https://ropensci.org/)
+- `mgcv`for time and species traits, and as alternative to black-box machine learning.
+
+
+Who are you?
+============
+type:section
+
+
+What is the structure of the day?
+=================================
+type:section
+
+Timing
+======
+
+- 8am to 5pm
+- Morning session: 8am-12pm
+- Aternoon session: 1pm-5pm
+
+(Approximate) schedule
+======================
+
+Time       | Thing
+-----------|--------------------
+0800-0815  | Intro
+0815-0945  | Generalized Additive Models
+0945-1000  | Coffee
+1000-1045  | Model checking
+1045-1130  | Model selection
+1130-1200  | Beyond the exponential family
+1200-1300  | Lunch
+1300-1700  | Extended examples/demos
+
+
+Foraging
+========
+
+
+Wifi
+====
+
+
+
+

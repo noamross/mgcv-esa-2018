@@ -1,0 +1,523 @@
+Generalized Additive Models
+============================
+author: Noam Ross (with lots of slides by David L Miller)
+date:  August 5th, 2017
+css: custom.css
+transition: none
+
+
+Overview
+=========
+
+- Motivation
+- Getting our feet wet with an example
+- What is a GAM?
+- What is smoothing?
+- How do GAMs work? (*Roughly*)
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(viridis)
+library(ggplot2)
+library(reshape2)
+library(animation)
+library(mgcv)
+opts_chunk$set(cache=TRUE, echo=FALSE)
+```
+
+Generalized Additive Models
+============================
+
+- Generalized =  many response distributions
+- Additive = terms **add** together
+- Models = Models
+
+
+***
+
+![](monorail.jpg)
+
+To GAMs from GLMs and LMs
+=============================
+type:section
+
+
+(Generalized) Linear Models
+=============================
+
+Models that look like:
+
+$$
+y_i = \beta_0 + x_{1i}\beta_1 + x_{2i}\beta_2 + \ldots + \epsilon_i
+$$
+
+(describe the response, $y_i$, as linear combination of the covariates, $x_{ji}$, with an offset)
+
+We can make $y_i\sim$ any exponential family distribution (Normal, Poisson, etc).
+
+Error term $\epsilon_i$ is normally distributed (usually).
+
+Why bother with anything more complicated?!
+=============================
+type:section
+
+Is this linear?
+=============================
+
+```{r islinear, fig.width=12, fig.height=6}
+set.seed(2) ## simulate some data...
+dat <- gamSim(1, n=400, dist="normal", scale=1, verbose=FALSE)
+dat <- dat[,c("y", "x0", "x1", "x2", "x3")]
+p <- ggplot(dat,aes(y=y,x=x1)) +
+      geom_point() +
+      theme_minimal()
+print(p)
+```
+
+Is this linear? Maybe?
+=============================
+
+```{r eval=FALSE, echo=TRUE}
+lm(y ~ x1, data=dat)
+```
+
+
+```{r maybe, fig.width=12, fig.height=6}
+p <- ggplot(dat, aes(y=y, x=x1)) + geom_point() +
+      theme_minimal()
+print(p + geom_smooth(method="lm"))
+```
+
+
+
+What can we do?
+=============================
+type:section
+
+Adding a quadratic term?
+=============================
+
+```{r eval=FALSE, echo=TRUE}
+lm(y ~ x1 + poly(x1, 2), data=dat)
+```
+
+```{r quadratic, fig.width=12, fig.height=6}
+p <- ggplot(dat, aes(y=y, x=x1)) + geom_point() +
+      theme_minimal()
+print(p + geom_smooth(method="lm", formula=y~x+poly(x, 2)))
+```
+
+
+
+
+Is this sustainable?
+=============================
+
+- Adding in quadratic (and higher terms) *can* make sense
+- This feels a bit *ad hoc*
+- Better if we had a **framework** to deal with these issues?
+
+```{r ruhroh, fig.width=12, fig.height=6}
+p <- ggplot(dat, aes(y=y, x=x2)) + geom_point() +
+      theme_minimal()
+print(p + geom_smooth(method="lm", formula=y~x+poly(x, 2)))
+```
+
+
+Wait, before we do math, let's talk dolphins
+=============================================
+type:section 
+
+![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
+
+(Sort of.  Let's fire up RStudio)
+
+
+How is the GAM different?
+=========================
+
+In GLM we model the mean of data as a sum of linear terms:
+
+$$
+y_i = \beta_0 +\sum_j \color{red}{ \beta_j x_{ji}} +\epsilon_i
+$$
+
+A GAM is a sum of _smooth functions_ or _smooths_
+
+$$
+y_i = \beta_0 + \sum_j \color{red}{s_j(x_{ji})} + \epsilon_i
+$$
+
+where $\epsilon_i \sim N(0, \sigma^2)$, $y_i \sim \text{Normal}$ (for now)
+
+Call the above equation the **linear predictor** in both cases.
+
+
+Why use functions rather that just coefficients?
+=================================================
+right:45%
+
+- Want to model the covariates flexibly
+- Covariates and response not necessarily linearly related!
+- Want some "wiggles"
+
+---
+
+```{r smoothdat, fig.width=8, fig.height=8}
+
+spdat <- melt(dat, id.vars = c("y"))
+p <- ggplot(spdat,aes(y=y,x=value)) +
+      geom_point() +
+      theme_minimal() +
+      facet_wrap(~variable, nrow=2)
+print(p)
+```
+
+
+Why use functions rather that just coefficients?
+=================================================
+right:45%
+
+- Want to model the covariates flexibly
+- Covariates and response not necessarily linearly related!
+- Want some "wiggles"
+
+---
+
+
+```{r wsmooths, fig.width=8, fig.height=8}
+p <- p + geom_smooth()
+print(p)
+```
+
+
+What are smooths, smoothing, and wiggliness?
+=============================================
+type:section
+
+Splines
+========
+
+- Functions made of other, simpler **basis functions** (usually polynomials)
+- Each **basis functions** $b_k$ has coefficients $\beta_k$ 
+- Our spline is just the sum: $s(x) = \sum_{k=1}^K \beta_k b_k(x)$
+
+![](images/addbasis.png)
+
+Splines (2)
+===========
+
+Several different _types_ of splines, with different applications
+
+![](images/morebasis.png)
+
+Basis functions of cubic spline (top), and thin-plate spline (bottom)
+
+Splines (3)
+===========
+title: none
+![](images/2dbasis.png)
+
+
+Splines (4)
+===========
+
+- We often write linear models in matrix notation: $X\boldsymbol{\beta}$
+  - $X$ is our data
+  - $\boldsymbol{\beta}$ are parameters we need to estimate
+- For a GAM it's the same
+  - $X$ has columns for each basis function, evaluated at each observation
+  - again, this is the linear predictor
+- Let's look at these:
+
+_Back RStudio to look at this in our model!_
+
+Avoiding Overfitting
+======================
+right:55%
+
+```{r wiggles, fig.height=8, fig.width=8}
+library(mgcv)
+# hacked from the example in ?gam
+set.seed(2) ## simulate some data... 
+dat <- gamSim(1,n=50,dist="normal",scale=0.5, verbose=FALSE)
+dat$y <- dat$f2 + rnorm(length(dat$f2), sd = sqrt(0.5))
+f2 <- function(x) 0.2*x^11*(10*(1-x))^6+10*(10*x)^3*(1-x)^10-mean(dat$y)
+ylim <- c(-4,6)
+
+# fit some models
+b.justright <- gam(y~s(x2),data=dat)
+b.sp0 <- gam(y~s(x2, sp=0, k=50),data=dat)
+b.spinf <- gam(y~s(x2),data=dat, sp=1e10)
+
+curve(f2,0,1, col="blue", ylim=ylim)
+points(dat$x2, dat$y-mean(dat$y))
+
+```
+***
+- Want a line that is "close" to all the data (high likelihood)
+- Splines _could_ just fit every data point, but this would be overfitting.  We know there is "error"
+- Easy to overfit - want a _smooth_ curve.
+- How do we measure smoothness? Calculus!
+
+Wigglyness by derivatives
+==========================
+
+```{r wigglyanim, results="hide"}
+library(numDeriv)
+f2 <- function(x) 0.2*x^11*(10*(1-x))^6+10*(10*x)^3*(1-x)^10 - mean(dat$y)
+
+xvals <- seq(0,1,len=100)
+
+plot_wiggly <- function(f2, xvals){
+
+  # pre-calculate
+  f2v <- f2(xvals)
+  f2vg <- grad(f2,xvals)
+  f2vg2 <- unlist(lapply(xvals, hessian, func=f2))
+  f2vg2min <- min(f2vg2) -2
+  
+  # now plot
+  for(i in 1:length(xvals)){
+    par(mfrow=c(1,3))
+    plot(xvals, f2v, type="l", main="function", ylab="f")
+    points(xvals[i], f2v[i], pch=19, col="red")
+    
+    plot(xvals, f2vg, type="l", main="derivative", ylab="df/dx")
+    points(xvals[i], f2vg[i], pch=19, col="red")
+    
+    plot(xvals, f2vg2, type="l", main="2nd derivative", ylab="d2f/dx2")
+    points(xvals[i], f2vg2[i], pch=19, col="red")
+    polygon(x=c(0,xvals[1:i], xvals[i],f2vg2min),
+            y=c(f2vg2min,f2vg2[1:i],f2vg2min,f2vg2min), col = "grey")
+    
+    ani.pause()
+  }
+}
+
+saveGIF(plot_wiggly(f2, xvals), "wiggly.gif", interval = 0.2, ani.width = 800, ani.height = 400)
+```
+
+![Animation of derivatives](wiggly.gif)
+
+What was that grey bit?: Wigglyness!
+====================================
+
+$$
+\int_\mathbb{R} \left( \frac{\partial^2 f(x)}{\partial^2 x}\right)^2 \text{d}x = \boldsymbol{\beta}^\text{T}S\boldsymbol{\beta} = \large{W}
+$$
+
+(Wigglyness is 100% the right mathy word)
+
+We penalize wiggliness to avoid overfitting.
+
+
+Making wigglyness matter
+=========================
+
+- $W$ measures **wigglyness**
+- (log) likelihood measures closeness to the data
+- We use a **smoothing parameter** ($\lambda$) to define the trade-off, to find
+the spline coefficients ($B_k$) that maximize
+
+$$
+\log(\text{Likelihood})  - \lambda W
+$$
+
+
+Picking the right smoothing parameter
+=====================================
+
+
+```{r wiggles-plot, fig.width=15}
+# make three plots, w. estimated smooth, truth and data on each
+par(mfrow=c(1,3), cex.main=3.5)
+
+plot(b.justright, se=FALSE, ylim=ylim, main=expression(lambda*plain("= just right")))
+points(dat$x2, dat$y-mean(dat$y))
+curve(f2,0,1, col="blue", add=TRUE)
+
+plot(b.sp0, se=FALSE, ylim=ylim, main=expression(lambda*plain("=")*0))
+points(dat$x2, dat$y-mean(dat$y))
+curve(f2,0,1, col="blue", add=TRUE)
+
+plot(b.spinf, se=FALSE, ylim=ylim, main=expression(lambda*plain("=")*infinity)) 
+points(dat$x2, dat$y-mean(dat$y))
+curve(f2,0,1, col="blue", add=TRUE)
+
+```
+
+Picking the right smoothing parameter
+=====================================
+
+- Two ways to think about how to optimize $\lambda$:
+   -  Predictive: Minimize out-of-sample error
+   -  Bayesian:  Put priors on our basis coeffiients
+- Many methods: AIC, Mallow's $C_p$, GCV, ML, REML
+- _Practically_, Use **REML**, because of numerical stability:
+  
+<img src="images/remlgcv.png">
+
+Hence `gam(..., method="REML")`
+
+
+Maximum wiggliness
+==================
+
+- We set **basis complexity** or "size" ($k$)
+- This is _maximum wigglyness_, can be thought of as number of small functionns
+  that make up a curve.
+- Once smoothing is applied, curves have fewer have **effective degrees of freedom (EDF)**
+
+**$$\text{EDF} < k$$**
+
+- $k$ must be "large enough", the $\lambda$ penalty does the rest
+- Bigger $k$ increases computational cost
+- In *mgcv*, default $k$ values are arbitrary
+
+
+A wiggly exercise!
+=============================
+
+-  We set $k$ in `s()` terms with `s(variable, k=n)`
+-  Re-fit models with small, medium and large $k$ values.
+-  Look at coefficients, model.matrix, summaries and plots
+-  How do deviance explained, EDF values, smooth shapes change?
+-  What is default $k$?
+
+***
+
+![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
+
+
+GAM summary so far
+==================
+
+- GAMs give us a framework to model  flexible nonlinear relationships
+- Use little functions (**basis functions**) to make big functions (**smooths**)
+- Use a **penalty** to trade off wiggliness/generality 
+- Need to make sure your smooths are **wiggly enough**
+
+Check-in: do we need COFFEE?
+============================
+type:section
+
+Predictions and Uncertainty
+===========================
+type:section
+
+
+What is a prediction?
+=====================
+
+- Evaluate the model, at a particular covariate combination
+- Answering (e.g.) the question "at a given depth and location how many dolphins?"
+- Steps:
+  1. evaluate the $s(\ldots)$ terms
+  2. move to the response scale (exponentiate? Do nothing?)
+  3. (multiply any offset etc)
+  
+$$\text{count}_i = A_i \exp \left( \beta_0 + s(x_i, y_i) + s(\text{Depth}_i)\right)$$
+
+What about uncertainty?
+========================
+type:section
+Without uncertainty, we're not doing statistics 
+
+
+Where does uncertainty come from?
+=================================
+
+- $\boldsymbol{\beta}$: uncertainty in the spline parameters
+- $\boldsymbol{\lambda}$: uncertainty in the smoothing parameter
+
+
+Parameter uncertainty
+=======================
+
+All the model coefficients together have **approximately**
+a multi-normal distribution around the mean:
+
+$$
+\boldsymbol{\beta} \sim N(\hat{\boldsymbol{\beta}},  \mathbf{V}_\boldsymbol{\beta})
+$$
+
+However, this is a distribution _dependent on the smoothing parameter_.
+
+In **mgcv**, `vcov(model)` returns $\mathbf{V}_\boldsymbol{\beta}$, the variance-covariance
+matrix of the coefficients.
+
+`vcov(mode, unconditional = TRUE)` corrects for uncertainty in the smoothing parameter.
+
+How do we make use of this information?
+========================================
+
+- confidence intervals in `plot`
+- standard errors using `se.fit` in the `predict()` function
+- simulating from the distribution of our coefficients using $\mathbf{V}_\boldsymbol{\beta}$
+
+Back to sea!
+============
+
+![a pantropical spotted dolphin doing its thing](images/spotteddolphin_swfsc.jpg)
+
+Exercise
+========
+
+-  Make predictions of dolphin counts at all points in `preddata`.
+-  plot separate maps of mean, low, and high estimates
+
+
+Varying spline shapes
+=====================
+
+-  Because our spline coefficients _covary_, it can be somewhat misleading
+   to just plot confidence intervals.  Sometimes we want to look at a better
+   sample of possible predictions.
+   
+-  We can _sample_ value of our coefficents from a mutivariate normal using `vcov(model)`.
+
+-  Since our model is ultimately a linear function of these coefficients, 
+   we can predict using
+
+$$
+\hat{y} = L_p \boldsymbol{\hat{\beta}}
+$$
+
+Where $L_p$ is the linear predictor matrix, which constructed from our data
+and our basis functions.
+
+Simulating parameters
+======================
+
+![Animation of uncertainty](uncertainty.gif)
+
+
+Prediction / Uncertainty Summary
+================================
+
+- Everything comes from variance of parameters
+- Can include uncertainty in the smoothing parameter too
+- Need to re-project/scale them to get the quantities we need
+- `mgcv` does most of the hard work for us
+- Fancy stuff possible with a little math
+
+
+Okay, that was a lot of information
+===================================
+type:section
+
+Summary
+=======
+
+- GAMs are GLMs plus some extra wiggles
+- Need to make sure things are *just wiggly enough*
+  - Basis + penalty is the way to do this
+- Fitting looks like `glm` with extra `s()` terms
+- Most stuff comes down to matrix algebra, that `mgcv` sheilds you from
+  - To do fancy stuff, get inside the matrices
+
+COFFEE
+======
+type:section
