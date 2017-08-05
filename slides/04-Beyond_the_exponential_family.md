@@ -21,20 +21,9 @@ $$ f(x|\theta) \sim exp(\sum_i \eta_i(\theta)T_i(x) - A(\theta))$$
 - Lets you model a much wider range of scenarios with smooths
 
 
-```{r setup, include=F}
 
-library(mgcv)
-library(magrittr)
-library(ggplot2)
-library(dplyr)
-library(tidyr)
 
-```
 
-```{r pres_setup, include =F}
-library(knitr)
-opts_chunk$set(cache=TRUE, echo=FALSE,fig.align="center")
-```
 
 
 What we'll cover
@@ -67,31 +56,7 @@ Counts and count-like things
 Tweedie distribution
 =====================
 
-```{r tweedie}
-library(tweedie)
-library(RColorBrewer)
-
-# tweedie
-y<-seq(0.01,5,by=0.01)
-pows <- seq(1.2, 1.9, by=0.1)
-
-fymat <- matrix(NA, length(y), length(pows))
-
-i <- 1
-for(pow in pows){
-  fymat[,i] <- dtweedie( y=y, power=pow, mu=2, phi=1)
-  i <- i+1
-}
-
-plot(range(y), range(fymat), type="n", ylab="Density", xlab="x", cex.lab=1.5,
-     main="")
-
-rr <- brewer.pal(8,"Dark2")
-
-for(i in 1:ncol(fymat)){
-  lines(y, fymat[,i], type="l", col=rr[i], lwd=2)
-}
-```
+<img src="04-Beyond_the_exponential_family-figure/tweedie-1.png" title="plot of chunk tweedie" alt="plot of chunk tweedie" style="display: block; margin: auto;" />
 ***
 -  $\text{Var}\left(\text{count}\right) = \phi\mathbb{E}(\text{count})^q$
 - Common distributions are sub-cases:
@@ -106,27 +71,7 @@ for(i in 1:ncol(fymat)){
 Negative binomial
 ==================
 
-```{r negbin}
-y<-seq(1,12,by=1)
-disps <- seq(0.001, 1, len=10)
-
-fymat <- matrix(NA, length(y), length(disps))
-
-i <- 1
-for(disp in disps){
-  fymat[,i] <- dnbinom(y, size=disp, mu=5)
-  i <- i+1
-}
-
-plot(range(y), range(fymat), type="n", ylab="Density", xlab="x", cex.lab=1.5,
-     main="")
-
-rr <- brewer.pal(8,"Dark2")
-
-for(i in 1:ncol(fymat)){
-  lines(y, fymat[,i], type="l", col=rr[i], lwd=2)
-}
-```
+<img src="04-Beyond_the_exponential_family-figure/negbin-1.png" title="plot of chunk negbin" alt="plot of chunk negbin" style="display: block; margin: auto;" />
 ***
 - $\text{Var}\left(\text{count}\right) =$ $\mathbb{E}(\text{count}) + \kappa \mathbb{E}(\text{count})^2$
 - Estimate $\kappa$
@@ -144,22 +89,7 @@ type:section
 The Beta distribution
 ======================
 
-```{r beta-dist}
-shape1 <- c(0.2, 1, 5, 1, 3, 1.5)
-shape2 <- c(0.2, 3, 1, 1, 1.5, 3)
-x <- seq(0.01, 0.99, length = 200)
-rr <- brewer.pal(length(shape1), "Dark2")
-fymat <- mapply(dbeta, shape1, shape2, MoreArgs = list(x = x))
-matplot(x, fymat, type = "l", col = rr, lwd = 2, lty = "solid")
-legend("top", bty = "n",
-       legend = expression(alpha == 0.2 ~~ beta == 0.2,
-                           alpha == 1.0 ~~ beta == 3.0,
-                           alpha == 5.0 ~~ beta == 1.0,
-                           alpha == 1.0 ~~ beta == 1.0,
-                           alpha == 3.0 ~~ beta == 1.5,
-                           alpha == 1.5 ~~ beta == 3.0),
-       col = rr, cex = 1.25, lty = "solid", lwd = 2)
-```
+<img src="04-Beyond_the_exponential_family-figure/beta-dist-1.png" title="plot of chunk beta-dist" alt="plot of chunk beta-dist" style="display: block; margin: auto;" />
 
 ***
 
@@ -198,9 +128,20 @@ Stereotypic behaviour in captive cheetahs
 Cheetah: data processing
 ========================
 
-```{r cheetah-load-data, echo = TRUE}
+
+```r
 cheetah <- read.table("../data/beta-regression/ZooData.txt", header = TRUE)
 names(cheetah)
+```
+
+```
+ [1] "Number"     "Scans"      "Proportion" "Size"       "Visual"    
+ [6] "Raised"     "Visitors"   "Feeding"    "Oc"         "Other"     
+[11] "Enrichment" "Group"      "Sex"        "Enclosure"  "Vehicle"   
+[16] "Diet"       "Age"        "Zoo"        "Eps"       
+```
+
+```r
 cheetah <- transform(cheetah, Raised = factor(Raised),
                      Feeding = factor(Feeding),
                      Oc = factor(Oc),
@@ -214,7 +155,8 @@ cheetah <- transform(cheetah, Raised = factor(Raised),
 Cheetah: model fitting
 ======================
 
-```{r cheetah-model, echo = TRUE}
+
+```r
 m <- gam(Proportion ~ s(log(Size)) + s(Visitors) + s(Enclosure) +
            s(Vehicle) + s(Age) + s(Zoo, bs = "re") + 
            Feeding + Oc + Other + Enrichment + Group + Sex,
@@ -225,18 +167,48 @@ Cheetah: model summary
 ======================
 title: false
 
-```{R cheetah-summary}
-summary(m)
+
+```
+
+Family: Beta regression(14.008) 
+Link function: logit 
+
+Formula:
+Proportion ~ s(log(Size)) + s(Visitors) + s(Enclosure) + s(Vehicle) + 
+    s(Age) + s(Zoo, bs = "re") + Feeding + Oc + Other + Enrichment + 
+    Group + Sex
+
+Parametric coefficients:
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -2.62169    0.28642  -9.153  < 2e-16 ***
+Feeding2    -0.47017    0.24004  -1.959 0.050150 .  
+Oc2          0.89373    0.23419   3.816 0.000135 ***
+Other2      -0.08821    0.22064  -0.400 0.689298    
+Enrichment2 -0.17822    0.24557  -0.726 0.468000    
+Group2      -0.57575    0.21491  -2.679 0.007383 ** 
+SexFemale    0.16166    0.17415   0.928 0.353278    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Approximate significance of smooth terms:
+                   edf Ref.df Chi.sq  p-value    
+s(log(Size)) 2.8849324  3.606 27.686 1.23e-05 ***
+s(Visitors)  1.0000413  1.000  0.088  0.76717    
+s(Enclosure) 1.6013748  1.979  1.177  0.51516    
+s(Vehicle)   1.0000770  1.000  7.391  0.00656 ** 
+s(Age)       1.0008134  1.002  7.217  0.00726 ** 
+s(Zoo)       0.0000135  8.000  0.000  0.62532    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+R-sq.(adj) =  0.289   Deviance explained =  102%
+-REML = -170.92  Scale est. = 1         n = 88
 ```
 
 Cheetah: model smooths
 ======================
 
-```{R cheetah-plot-smooths, fig.width = 15, fig.height = 8}
-layout(matrix(1:6, ncol = 3, byrow = TRUE))
-plot(m, shade = TRUE, scale = 0, seWithMean = TRUE)
-layout(1)
-```
+<img src="04-Beyond_the_exponential_family-figure/cheetah-plot-smooths-1.png" title="plot of chunk cheetah-plot-smooths" alt="plot of chunk cheetah-plot-smooths" style="display: block; margin: auto;" />
 
 Modelling outliers
 ====================
@@ -252,34 +224,15 @@ The student-t distribution
 
 
 
-```{r tplot,fig.width=13, fig.height=5}
-# set.seed(2)
-# dat = data.frame(df = rep(c(2,4,50),each=500))
-# dat$x = rt(1500,df=dat$df)
-# dat$df_val = paste("df = ",dat$df, sep ="")
-# x_val = seq(min(dat$x),max(dat$x), length=200)
-# ggplot(aes(x=x),data=dat)+
-#   geom_density(col="red")+
-#   facet_grid(.~df_val)+
-#   annotate(x=x_val,y=dnorm(x_val), geom = "line")+
-#   theme_bw(base_size = 20)
-
-dat <- data.frame(x = seq(-10, 10, length = 1000))
-dat <- transform(dat,
-                 df = rep(rep(c(2,4,50), each = 1000), times = 2),
-                 distribution = rep(c("t","Gaussian"), each = 3000),
-                 density = c(rep(dnorm(x), 3), dt(x, df = 2), `df=4` = dt(x, df = 4), `df=50` = dt(x, df = 50)))
-ggplot(dat, aes(x = x, y = density, colour = distribution)) +
-  geom_line() + facet_wrap(~ df, ncol = 3, labeller = "label_both") +
-   theme_bw(base_size = 20) + theme(legend.position = "top")
-```
+<img src="04-Beyond_the_exponential_family-figure/tplot-1.png" title="plot of chunk tplot" alt="plot of chunk tplot" style="display: block; margin: auto;" />
 
 
 
 
 The student-t distribution: Usage
 ============================
-```{r texample, eval=FALSE,echo=T}
+
+```r
 set.seed(4)
 n=300
 dat = data.frame(x=seq(0,10,length=n))
@@ -291,38 +244,35 @@ t_mod = gam(y~s(x,k=20), data=dat, family=scat(link="identity"))
 
 The student-t distribution: Usage
 ============================
-```{r texample2, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-set.seed(4)
-n=300
-dat = data.frame(x=seq(0,10,length=n))
-dat$f = 20*exp(-dat$x)*dat$x
-dat$y  = 1*rt(n,df = 3) + dat$f
-norm_mod =  gam(y~s(x,k=20), data=dat, family=gaussian(link="identity"))
-t_mod = gam(y~s(x,k=20), data=dat, family=scat(link="identity"))
-predict_norm = predict(norm_mod,se.fit=T)
-predict_t = predict(t_mod,se.fit=T)
-fit_vals = data.frame(x = c(dat$x,dat$x), 
-                      fit =c(predict_norm[[1]],predict_t[[1]]),
-                      se_min = c(predict_norm[[1]] - 2*predict_norm[[2]],
-                                 predict_t[[1]] - 2*predict_t[[2]]),
-                      se_max = c(predict_norm[[1]] + 2*predict_norm[[2]],
-                                 predict_t[[1]] + 2*predict_t[[2]]),
-                      model = rep(c("normal errors","t-errors"),each=n))
-ggplot(aes(x=x,y=fit),data=fit_vals)+
-  facet_grid(.~model)+
-  geom_line(col="red")+
-  geom_ribbon(aes(ymin =se_min,ymax = se_max),alpha=0.5,fill="red")+
-  annotate(x = dat$x,y=dat$y,size=2,geom="point")+
-  annotate(x = dat$x,y=dat$f,size=2,geom="line")+
-  theme_bw(20)
-```
+<img src="04-Beyond_the_exponential_family-figure/texample2-1.png" title="plot of chunk texample2" alt="plot of chunk texample2" style="display: block; margin: auto;" />
 
 
 
 The student-t distribution: Usage
 ============================
-```{r texample3, include =T}
-summary(t_mod)
+
+```
+
+Family: Scaled t(2.976,0.968) 
+Link function: identity 
+
+Formula:
+y ~ s(x, k = 20)
+
+Parametric coefficients:
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  2.02664    0.06853   29.57   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Approximate significance of smooth terms:
+       edf Ref.df Chi.sq p-value    
+s(x) 13.27  15.71   1221  <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+R-sq.(adj) =  0.695   Deviance explained = 63.1%
+-REML = 546.75  Scale est. = 1         n = 300
 ```
 
 
@@ -342,57 +292,18 @@ Ordered categorical data
 
 Ordered categorical data 
 ===========================
-```{r ocat_ex1, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-set.seed(4)
-n= 100
-dat  = data.frame(body_size = seq(-2,2, length=200))
-dat$linear_predictor = 6*exp(dat$body_size*2)/(1+exp(dat$body_size*2))-2
-
-ggplot(aes(x=body_size, y=linear_predictor),data=dat) + 
-  annotate(x= dat$body_size, ymin=-3,ymax=-1, alpha=0.25,geom="ribbon")+
-  annotate(x= 0, y=-2, label = "least concern",geom="text",size=10)+
-  annotate(x= dat$body_size, ymin=-1,ymax=1.5, alpha=0.25,geom="ribbon",fill="red")+
-  annotate(x= 0, y=0.25, label = "vulnerable",geom="text",size=10)+
-  annotate(x= dat$body_size, ymin=1.5,ymax=2, alpha=0.25,geom="ribbon",fill="blue")+
-  annotate(x= 0, y=1.75, label = "endangered",geom="text",size=10)+
-  annotate(x= 0, y=3.5, label = "extinct",geom="text",size=10)+
-  scale_y_continuous("linear predictor", expand=c(0,0),limits=c(-3,5))+
-  scale_x_continuous("relative body size", expand=c(0,0))+
-  theme_bw(30)+
-  theme(panel.grid = element_blank())
-
-```
+<img src="04-Beyond_the_exponential_family-figure/ocat_ex1-1.png" title="plot of chunk ocat_ex1" alt="plot of chunk ocat_ex1" style="display: block; margin: auto;" />
 
 
 Ordered categorical data 
 ===========================
-```{r ocat_ex2, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-set.seed(4)
-n= 100
-dat  = data.frame(body_size = seq(-2,2, length=200))
-dat$linear_predictor = 6*exp(dat$body_size*2)/(1+exp(dat$body_size*2))-2
-
-ggplot(aes(x=body_size, y=linear_predictor),data=dat) + 
-  geom_line()+
-  geom_ribbon(aes(ymin=linear_predictor-1,ymax=linear_predictor+1),alpha=0.25)+
-  annotate(x= dat$body_size, ymin=-3,ymax=-1, alpha=0.25,geom="ribbon")+
-  annotate(x= 0, y=-2, label = "least concern",geom="text",size=10)+
-  annotate(x= dat$body_size, ymin=-1,ymax=1.5, alpha=0.25,geom="ribbon",fill="red")+
-  annotate(x= 0, y=0.25, label = "vulnerable",geom="text",size=10)+
-  annotate(x= dat$body_size, ymin=1.5,ymax=2, alpha=0.25,geom="ribbon",fill="blue")+
-  annotate(x= 0, y=1.75, label = "endangered",geom="text",size=10)+
-  annotate(x= 0, y=3.5, label = "extinct",geom="text",size=10)+
-  scale_x_continuous("relative body size", expand=c(0,0))+
-  scale_y_continuous("linear predictor",limits=c(-3,5), expand=c(0,0))+
-  theme_bw(30)+
-  theme(panel.grid = element_blank())
-
-```
+<img src="04-Beyond_the_exponential_family-figure/ocat_ex2-1.png" title="plot of chunk ocat_ex2" alt="plot of chunk ocat_ex2" style="display: block; margin: auto;" />
 
 
 Using ocat
 ===========================
-```{r ocat_ex3, include =T,echo=T,results= "hide", fig.width=15, fig.height=5}
+
+```r
 n= 200
 dat = data.frame(x1 = runif(n,-1,1),x2=2*pi*runif(n))
 dat$f = dat$x1^2 + sin(dat$x2)
@@ -402,29 +313,43 @@ ocat_model = gam(y~s(x1)+s(x2), family=ocat(R=3),data=dat)
 plot(ocat_model,page=1)
 ```
 
+<img src="04-Beyond_the_exponential_family-figure/ocat_ex3-1.png" title="plot of chunk ocat_ex3" alt="plot of chunk ocat_ex3" style="display: block; margin: auto;" />
+
 Using ocat
 ===========================
-```{r ocat_ex4, include =T,echo=T, fig.width=15, fig.height=8}
+
+```r
 summary(ocat_model)
 ```
 
+```
+
+Family: Ordered Categorical(-1,-0.09) 
+Link function: identity 
+
+Formula:
+y ~ s(x1) + s(x2)
+
+Parametric coefficients:
+            Estimate Std. Error z value Pr(>|z|)  
+(Intercept)   0.5010     0.2792   1.794   0.0727 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Approximate significance of smooth terms:
+        edf Ref.df Chi.sq  p-value    
+s(x1) 3.452  4.282  18.67  0.00133 ** 
+s(x2) 5.195  6.270  84.34 1.09e-15 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Deviance explained = 57.7%
+-REML =  97.38  Scale est. = 1         n = 200
+```
+
 Using ocat
 ===========================
-```{r ocat_ex5, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-ocat_predict = predict(ocat_model,type = "response")
-colnames(ocat_predict) = c("1","2","3")
-ocat_predict = as.data.frame(ocat_predict)%>%
-  mutate(x= fitted(ocat_model),y=as.numeric(dat$y))%>%
-  gather(pred_level,prediction,`1`:`3`)%>%
-  mutate(pred_level = as.numeric(pred_level),
-         obs_val = as.numeric(y==pred_level))
-
-ggplot(aes(x= x, y= obs_val),data=ocat_predict)+
-  facet_wrap(~pred_level)+
-  geom_point()+
-  geom_line(aes(y= prediction))+
-  theme_bw(30)
-```
+<img src="04-Beyond_the_exponential_family-figure/ocat_ex5-1.png" title="plot of chunk ocat_ex5" alt="plot of chunk ocat_ex5" style="display: block; margin: auto;" />
 
 Unordered categorical data 
 ===========================
@@ -452,40 +377,42 @@ Using the multinom function
  
 Using the multinom function
 ===========================
-```{r multinom1, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-set.seed(10)
-n= 500
-dat = data.frame(tree_cover = round(runif(n,0,1),2),road_dist=round(10*runif(n),1))
-dat$f_deer = with(dat, 4*exp(-road_dist/2)*road_dist - 2*(tree_cover)^2)
-dat$f_pig = with(dat, log(exp(-road_dist)+0.1)+1)
-prob_matrix = cbind(1, exp(dat$f_deer),exp(dat$f_pig))
-dat$y = apply(prob_matrix,MARGIN = 1,function(x) sample(0:2,size = 1,prob = x))
-model_dat = dat%>% select(tree_cover, road_dist, y)
+
+
+
+```r
+head(model_dat)
 ```
 
-```{r multinom2, include =T,echo=T, fig.width=15, fig.height=8}
-head(model_dat)
-``` 
+```
+  tree_cover road_dist y
+1       0.51       8.6 1
+2       0.31       9.9 0
+3       0.43       8.2 1
+4       0.69       2.9 1
+5       0.09       0.7 1
+6       0.23       5.6 1
+```
 
 ***
- ```{r multinom3, include =T,echo=T, fig.width=6, fig.height=6}
-pairs(model_dat)
-``` 
+ 
+ ```r
+ pairs(model_dat)
+ ```
+ 
+ <img src="04-Beyond_the_exponential_family-figure/multinom3-1.png" title="plot of chunk multinom3" alt="plot of chunk multinom3" style="display: block; margin: auto;" />
 
  
 Using the multinom function
 ===========================
-```{r multinom4, include =T,echo=F,results= "hide", fig.width=15, fig.height=8}
-multinom_model = gam(list(y~s(tree_cover)+s(road_dist), ~s(tree_cover)+s(road_dist)),
-                     data= model_dat, family=multinom(K=2))
-plot(multinom_model,page=1,cex.axis=2,cex.lab=2)
-```
+<img src="04-Beyond_the_exponential_family-figure/multinom4-1.png" title="plot of chunk multinom4" alt="plot of chunk multinom4" style="display: block; margin: auto;" />
 
 
  
 Understanding the results
 ===========================
-```{r multinom5, include =T,echo=T,results= "hide", fig.width=15, fig.height=4}
+
+```r
 multinom_pred_data = as.data.frame(expand.grid(road_dist =seq(0,10,length=50),
                                                tree_cover =c(0,0.33,0.66,1)))
 multinom_pred = predict(multinom_model, multinom_pred_data,type = "response")
@@ -498,8 +425,9 @@ ggplot(aes(road_dist, probability,color=species),data=multinom_pred_data_long)+
   geom_line()+
   facet_grid(.~tree_cover)+
   theme_bw(20)
-
 ```
+
+<img src="04-Beyond_the_exponential_family-figure/multinom5-1.png" title="plot of chunk multinom5" alt="plot of chunk multinom5" style="display: block; margin: auto;" />
 
 
 Other multivariate distributions to check out
