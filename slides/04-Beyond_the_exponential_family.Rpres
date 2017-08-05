@@ -252,17 +252,26 @@ The student-t distribution
 
 
 
-```{r tplot,fig.width=15, fig.height=6}
-set.seed(2)
-dat = data.frame(df = rep(c(2,4,50),each=500))
-dat$x = rt(1500,df=dat$df)
-dat$df_val = paste("df = ",dat$df, sep ="")
-x_val = seq(min(dat$x),max(dat$x), length=200)
-ggplot(aes(x=x),data=dat)+
-  geom_density(col="red")+
-  facet_grid(.~df_val)+
-  annotate(x=x_val,y=dnorm(x_val), geom = "line")+
-  theme_bw(base_size = 20)
+```{r tplot,fig.width=13, fig.height=5}
+# set.seed(2)
+# dat = data.frame(df = rep(c(2,4,50),each=500))
+# dat$x = rt(1500,df=dat$df)
+# dat$df_val = paste("df = ",dat$df, sep ="")
+# x_val = seq(min(dat$x),max(dat$x), length=200)
+# ggplot(aes(x=x),data=dat)+
+#   geom_density(col="red")+
+#   facet_grid(.~df_val)+
+#   annotate(x=x_val,y=dnorm(x_val), geom = "line")+
+#   theme_bw(base_size = 20)
+
+dat <- data.frame(x = seq(-10, 10, length = 1000))
+dat <- transform(dat,
+                 df = rep(rep(c(2,4,50), each = 1000), times = 2),
+                 distribution = rep(c("t","Gaussian"), each = 3000),
+                 density = c(rep(dnorm(x), 3), dt(x, df = 2), `df=4` = dt(x, df = 4), `df=50` = dt(x, df = 50)))
+ggplot(dat, aes(x = x, y = density, colour = distribution)) +
+  geom_line() + facet_wrap(~ df, ncol = 3, labeller = "label_both") +
+   theme_bw(base_size = 20) + theme(legend.position = "top")
 ```
 
 
@@ -417,12 +426,6 @@ ggplot(aes(x= x, y= obs_val),data=ocat_predict)+
   theme_bw(30)
 ```
 
-
-
-Unordered categorical data 
-===========================
-- What do you do if categorical data doesn't fall in a nice order? 
-
 Unordered categorical data 
 ===========================
 - What do you do if categorical data doesn't fall in a nice order? 
@@ -430,13 +433,12 @@ Unordered categorical data
  
  Unordered categorical data 
 ===========================
-incremental: true
+
 - Model probability of a category occuring relative to an (arbitrary) reference level
 - one linear equation for each category except the reference class
 - $p(y=i|\mathbf{x}) = exp(\mu_i(\mathbf{x}))/(1+\sum_j exp(\mu_j(\mathbf{x}))$
 - $\mu_i(\mathbf{x}) = s_{1,j}(x_1) + s_{2,j}(x_2)$
 - $p(y=0|\mathbf{x})= 1/(1+\sum_j exp(\mu_j(\mathbf{x}))$
-
 
   
 Using the multinom function
@@ -507,7 +509,6 @@ type: section
 
 Multivariate normal (family = mvn)
 ===========================
-incremental: true
 
 - Fit a different smooth model for multiple y-variables, but allowing 
   correlation between y's
@@ -517,7 +518,6 @@ incremental: true
 
 Cox Proportional hazards (family = cox.ph)
 ===========================
-incremental: true
 
 - Censored data: y measures time until an event occurs, or the study was stopped (censoring)
 - Measures relative rates, rather than absolute rates (no intercepts)
@@ -529,19 +529,16 @@ incremental: true
 
 Gaussian location-scale models (family = gaulss)
 ===========================
-incremental: true
 
 - Model both the mean ("location") and variance ("scale") as smooth functions of predictors 
 - Example uses: detecting early warning signs in time series, finding factors driving 
 population variability
 - mgcv code: `formula = list(y~s(x1)+s(x2), ~s(x2)+s(x3)), family=gaulss`
-- censor.var = 0 if censored, 1 if not
 
 
 
 Zero-inflated Poisson location-scale models (family = ziplss)
 ===========================
-incremental: true
 
 - Models the probability of zeros seperately from mean counts given that you've observed more than zero
 at a location.
