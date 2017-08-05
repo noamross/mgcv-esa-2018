@@ -183,7 +183,7 @@ Also, if all you have is the percentages, the beta model is unlikely to be terri
 Stereotypic behaviour in captive cheetahs
 =========================================
 
-To illustrate the use of the `betar()` family in **mgcv** we use a behavioural data set of observations on captive cheetahs. These data are prvided and extensively analysed in Zuur et al () and originate from Quirke et al (2012).
+To illustrate the use of the `betar()` family in **mgcv** we use a behavioural data set of observations on captive cheetahs. These data are provided and extensively analysed in Zuur et al () and originate from Quirke et al (2012).
 
 Stereotypic behaviour in captive cheetahs
 =========================================
