@@ -176,7 +176,7 @@ Beta or Binomial?
 
 The binomial model also model's proportions --- more specifically it models the number of successes in $m$ trials. If you have data of this form then model the binomial counts as this can yield predicted *counts* if required.
 
-If you have true percentage or proportion data, say estimated prpotional plant cover in a quadrat, then the beta model is appropriate.
+If you have true percentage or proportion data, say estimated proportional plant cover in a quadrat, then the beta model is appropriate.
 
 Also, if all you have is the percentages, the beta model is unlikely to be terribly bad.
 
