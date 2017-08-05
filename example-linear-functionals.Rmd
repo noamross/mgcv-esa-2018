@@ -56,7 +56,7 @@ the functional thing because if you want to dig into this approach further or if
 you want to read help files on these, as you have to search
 `?linear.functional.terms`.
 
-There's a few major useages Ive found for these. There's likely more than this,
+There's a few major useages I've found for these. There's likely more than this,
 but these are all cases I've encountered. Also, each of these cases requires you
 to set up your predictor matrices carefully, so make sure you know what kind of
 functional you'll be fitting, and what predictor matrix is going where in the `s()`
