@@ -1,1 +1,1 @@
-# mgcv-esa-workshop
+# mgcv-esa-2018
