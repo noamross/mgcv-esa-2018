@@ -25,7 +25,7 @@ Participants will be assumed to be familiar with the basics of R (loading/manipu
 ## Downloads and Installation
 
 - You should have [R](https://cran.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/#download) installed
-- Download <https://github.com/noamross/mgcv-esa-workshop/archive/master.zip>, unzip, and open `mgcv-esa-workshop.Rproj` in RStudio. (You can clone if you are a git user)
+- Download <https://github.com/noamross/mgcv-esa-2018/archive/master.zip>, unzip, and open `mgcv-esa-2018.Rproj` in RStudio. (You can clone if you are a git user)
 - Use `install.packages` to install any of these packages you may not have:
 
 ```
