@@ -1,7 +1,7 @@
 GAMs: Model Selection
 ============================
 author: Gavin L Simpson
-date: August 5th, 2017
+date: August 5th, 2018
 css: custom.css
 transition: none
 
@@ -400,7 +400,7 @@ References
 - [Marra & Wood (2011) *Computational Statistics and Data Analysis* **55** 2372--2387.](http://doi.org/10.1016/j.csda.2011.02.004)
 - [Marra & Wood (2012) *Scandinavian Journal of Statistics, Theory and Applications* **39**(1), 53--74.](http://doi.org/10.1111/j.1467-9469.2011.00760.x.)
 - [Nychka (1988) *Journal of the American Statistical Association* **83**(404) 1134--1143.](http://doi.org/10.1080/01621459.1988.10478711)
-- Wood (2006, 2017) *Generalized Additive Models: An Introduction with R*. Chapman and Hall/CRC. (New 2nd Edition)
+- Wood (2006, 2018) *Generalized Additive Models: An Introduction with R*. Chapman and Hall/CRC. (New 2nd Edition)
 - [Wood (2013a) *Biometrika* **100**(1) 221--228.](http://doi.org/10.1093/biomet/ass048)
 - [Wood (2013b) *Biometrika* **100**(4) 1005--1010.](http://doi.org/10.1093/biomet/ast038)
 - [Wood et al (2016) *JASA* **111** 1548--1563](https://doi.org/10.1080/01621459.2016.1180986)

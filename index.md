@@ -4,7 +4,7 @@ layout: page
 
 # Welcome to the `mgcv` course webpage.
 
-<img src="images/mgcv-inside-transparent.png" align="right" width="150">A course! To be given at the Ecological Society of America conference in Fort Lauderdale, Saturday August 5th 8am-5pm, 2017. Program link [here](https://eco.confex.com/eco/2017/webprogram/Session13118.html).
+<img src="images/mgcv-inside-transparent.png" align="right" width="150">A course! To be given at the Ecological Society of America conference in Fort Lauderdale, Saturday August 5th 8am-5pm, 2018. Program link [here](https://eco.confex.com/eco/2018/webprogram/Session13118.html).
 
 This site contains slides, exercises and other materials for the course.
 

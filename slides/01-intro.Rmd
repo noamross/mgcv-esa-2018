@@ -1,7 +1,7 @@
 ---
 title: "Generalized Additive Models"
 author: "Noam Ross (with lots of slides by David L Miller)"
-date: "2017-08-05"
+date: "2018-08-05"
 output:
   xaringan::moon_reader:
     nature:

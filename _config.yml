@@ -1,7 +1,7 @@
 # Jekyll configuration
 
 name: mgcv course
-description: Information for the mgcv workshop hosted at the Ecological Society of America Annual Meeting 2017.
+description: Information for the mgcv workshop hosted at the Ecological Society of America Annual Meeting 2018.
 
 # url is currently only used only for the RSS feed in feed.xml
 url: https://noamross.github.io/mgcv-esa-workshop/

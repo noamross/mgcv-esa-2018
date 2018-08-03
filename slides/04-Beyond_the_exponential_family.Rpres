@@ -1,7 +1,7 @@
 Beyond the exponential family
 ============================
 author: Eric Pedersen, Gavin Simpson, David Miller, Noam Ross
-date:  August 5th, 2017
+date:  August 5th, 2018
 css: custom.css
 transition: none
 
