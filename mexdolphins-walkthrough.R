@@ -13,6 +13,18 @@
 #' The data are provided in the `data/mexdolphins` folder as the file `mexdolphins.RData`. Loading this we can see what is provided:
 #' 
 #' 
+#' If you haven't already installed these packages, do so:
+install.packages(c(
+  "mgcv",
+  "plyr",
+  "ggplot2",
+  "viridis",
+  "dplyr",
+  "tidyr",
+  "mvtnorm",
+  "statmod"
+))
+
 ## ----loaddata------------------------------------------------------------
 load("data/mexdolphins/mexdolphins.RData")
 ls()
