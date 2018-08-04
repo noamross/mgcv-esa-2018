@@ -1,13 +1,17 @@
-Fitting Non-Linear Models in R with the mgcv Package
+Fitting Non-Linear Models in R with  mgcv 
 ============================
 css: custom.css
 transition: none
 
-Gavin L Simpson and Noam Ross
-
-(with Dave Miller and Eric Pedersen _in absentia_)
+Gavin L Simpson and Noam Ross (with Dave Miller and Eric Pedersen _in absentia_)
 
 Download/Install materials from **bit.ly/mgcv2018**
+
+OR just open RStudio and run:
+```
+install.packages("usethis")
+usethis::use_course("bit.ly/mgcv-zip")
+```
 
 Good morning!
 ==============
