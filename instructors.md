@@ -19,7 +19,8 @@ The course will be taught by:
 
 ## Noam Ross
 
-<img src="images/noam-ross.jpg" align="right">Noam is a disease ecologist at EcoHealth Alliance in New York. He works on both the theoretical and empirical sides of in the dynamics of disease circulation in wildlife populations and spillover to humans. He uses `mgcv` for both analysis of disease time-series and multivariate analysis of macroecology. He has been using R for eight years, and serves as editor for [rOpenSci](https://ropensci.org/), a community project to peer-review R packages.
+<img src="images/noam-ross.jpg" align="right">Noam is a disease ecologist at EcoHealth Alliance in New York. He works on both the theoretical and empirical sides of in the dynamics of disease circulation in wildlife populations and spillover to humans. He uses `mgcv` for both analysis of disease time-series and multivariate analysis of macroecology. He has been using R for nine years, serves as editor for [rOpenSci](https://ropensci.org/), a community project to peer-review R packages, and is author of a forthcoming [DataCamp](https://www.datacamp.com/home) course on
+GAMs.
 
 # Course Partners
 
