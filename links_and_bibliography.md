@@ -15,6 +15,8 @@ title: Links and Bibliography
 -  [A post on GAMs by Kim Larsen at Stitchfix](https://multithreaded.stitchfix.com/blog/2015/07/30/gam/): This introduces GAMs from a
    machine-learning perspective.
 -  [Stack Overflow questions and answers about mgcv](https://stats.stackexchange.com/questions/tagged/mgcv) (many answered by Gavin!)
+- [The **qgam** package](https://cran.r-project.org/web/packages/qgam/index.html)
+  for quantile regression with GAMs.
 
 # Bibliography
 
