@@ -23,7 +23,7 @@ Here we'll list some useful papers and books on the topics covered in the course
 ## Books
 
 
-- Wood, S. N. (2006). Generalized Additive Models. CRC Press.
+- Wood, S. N. (2017). Generalized Additive Models: An Introduction with R, Second Edition. CRC Press.
 - Ruppert, D., Wand, M. P., & Carroll, R. J. (2003). Semiparametric Regression. Cambridge University Press.
 - Hastie, T. J., & Tibshirani, R. J. (1990). Generalized Additive Models. Taylor & Francis.
 
