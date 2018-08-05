@@ -1,10 +1,22 @@
 ---
 layout: page
-
+title: Links and Bibliography
 ---
 
-# Bibliography
+# Links
 
+-  Noam's NYR Meetup Talk ([Video](https://www.youtube.com/watch?v=q4_t8jXcQgc),
+   [Slides](https://github.com/noamross/2017-11-14-noamross-gams-nyhackr/blob/master/2017-11-14-noamross-gams-nyhackr.pdf)):  This is an ~80 minute talk that is mostly an overview
+   of all the different model types that **mgcv** can fit, including different
+   basis types, distributions, and options for bigger data and fully Bayesian
+   approaches
+-  [Gavin's GAM-centric blog](https://www.fromthebottomoftheheap.net/): Lots of post of experimenting with new features,
+   packages, and edge cases for GAMs.
+-  [A post on GAMs by Kim Larsen at Stitchfix](https://multithreaded.stitchfix.com/blog/2015/07/30/gam/): This introduced GAMs from a
+   machine-learning perspective: 
+-  [Stack Overflow questions and answers about mgcv](https://stats.stackexchange.com/questions/tagged/mgcv) (many answered by Gavin!)
+
+# Bibliography
 
 Here we'll list some useful papers and books on the topics covered in the course.
 
@@ -55,5 +67,4 @@ Here we'll list some useful papers and books on the topics covered in the course
 - Miller, D. L., Burt, M. L., Rexstad, E. A., & Thomas, L. (2013). Spatial models for distance sampling data: recent developments and future directions. Methods in Ecology and Evolution, 4(11), 1001–1010. [http://doi.org/10.1111/2041-210X.12105](http://doi.org/10.1111/2041-210X.12105)
 - Wood, S. N., Bravington, M. V., & Hedley, S. L. (2008). Soap film smoothing. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 70(5), 931–955. [http://doi.org/10.1111/j.1467-9868.2008.00665.x](http://doi.org/10.1111/j.1467-9868.2008.00665.x)
 - Course notes from Dave's spatial modelling course at Duke [available here](http://distancesampling.org/workshops/duke-spatial-2015)
-
 
