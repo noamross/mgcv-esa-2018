@@ -17,6 +17,9 @@ title: Links and Bibliography
 -  [Stack Overflow questions and answers about mgcv](https://stats.stackexchange.com/questions/tagged/mgcv) (many answered by Gavin!)
 - [The **qgam** package](https://cran.r-project.org/web/packages/qgam/index.html)
   for quantile regression with GAMs.
+- [The **brms** package](https://cran.r-project.org/web/packages/qgam/index.html)
+  which uses Stan to fit full Bayesian  models using Stan for MCMC, including
+  **mgcv**-type smooths.
 
 # Bibliography
 
