@@ -12,8 +12,8 @@ title: Links and Bibliography
    approaches
 -  [Gavin's GAM-centric blog](https://www.fromthebottomoftheheap.net/): Lots of post of experimenting with new features,
    packages, and edge cases for GAMs.
--  [A post on GAMs by Kim Larsen at Stitchfix](https://multithreaded.stitchfix.com/blog/2015/07/30/gam/): This introduced GAMs from a
-   machine-learning perspective: 
+-  [A post on GAMs by Kim Larsen at Stitchfix](https://multithreaded.stitchfix.com/blog/2015/07/30/gam/): This introduces GAMs from a
+   machine-learning perspective.
 -  [Stack Overflow questions and answers about mgcv](https://stats.stackexchange.com/questions/tagged/mgcv) (many answered by Gavin!)
 
 # Bibliography
